@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Разработчик игр Unreal Engine | Портфолио</title>
+  
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  
+  <meta name="description" content="Портфолио разработчика игр на Unreal Engine. Геймплейные системы, Blueprints, C++, Java." />
+
+  <meta property="og:title" content="Unreal Engine Game Developer Portfolio" />
+  <meta property="og:description" content="Gameplay-focused Unreal Engine developer. Blueprints, C++, Java." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://yourdomain.com/preview.jpg" />
+  <meta property="og:url" content="https://yourdomain.com" />
+
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css" />
+  </head>
+  <style>
+    .footer {
+      background: transparent !important;
+      box-shadow: none !important;
+      margin-top: 100px;
+      overflow: visible !important;
+    }
+    .footer::after {
+      content: '';
+      position: absolute;
+      top: -48px; left: 0; width: 100%; height: calc(100% + 48px);
+      background-color: var(--bg-secondary);
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center top;
+      z-index: -1;
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 320' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 72 H540 C580 72 600 52 640 52 C680 52 700 92 760 92 C820 92 840 52 880 52 C920 52 940 72 980 72 H1440 V 320 H 0 Z' fill='black'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 320' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 72 H540 C580 72 600 52 640 52 C680 52 700 92 760 92 C820 92 840 52 880 52 C920 52 940 72 980 72 H1440 V 320 H 0 Z' fill='black'/%3E%3C/svg%3E");
+      -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    }
+    .footer::before { top: -48px !important; z-index: 1; }
+    .footer-hud { overflow: hidden; }
+  </style>
+</head>
+<body>
+<button id="mobile-lang-toggle" class="mobile-lang-btn">
+  <i class="ri-translate-2"></i>
+  <span class="lang-label">EN</span>
+</button>
+  <div class="scroll-progress"></div>
+
+  <header class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-scanlines"></div>
+    <div class="hero-particles">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="hero-content-wrapper">
+      <div class="hero-visual">
+        <div class="visual-inner">
+          <img src="avatar.jpg" alt="Avatar" class="hero-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder');">
+        </div>
+        <div class="visual-border"></div>
+        <div class="visual-corner top-left"></div>
+        <div class="visual-corner bottom-right"></div>
+      </div>
+
+      <h1 class="hero-title hacker-text" 
+          data-ru="Разработчик игр на Unreal Engine"
+          data-en="Unreal Engine Game Developer">
+        Разработчик игр на Unreal Engine
+      </h1>
+
+      <p class="hero-subtitle hacker-text"
+         data-ru="Геймплейный разработчик Unreal Engine. Blueprints, C++, Java."
+         data-en="Gameplay-focused Unreal Engine developer. Blueprints, C++, Java.">
+        Разработчик Unreal Engine. Blueprints, C++, Java.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#projects" class="btn btn-cyber-primary">
+          <span class="btn-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12H19M19 12L13 6M19 12L13 18"/></svg>
+            <span class="hacker-text" data-ru="Проекты" data-en="View Projects">Проекты</span>
+          </span>
+        </a>
+        <a class="btn btn-cyber-secondary" data-video="https://www.youtube.com/embed/VIDEO_ID">
+          <span class="btn-content">
+            ▶ <span class="hacker-text" data-ru="Смотреть геймплей" data-en="Watch Gameplay">Смотреть геймплей</span>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <div class="mouse"><div class="wheel"></div></div>
+      <div class="arrow-scroll"><span></span><span></span><span></span></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="about" class="section">
+      <h2 class="hacker-text" data-ru="Данные профиля" data-en="Profile Data">Данные профиля</h2>
+      
+      <div class="about-card">
+        <div class="about-visual">
+          <div class="profile-frame">
+            <img src="avatar.jpg" alt="Profile" class="profile-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder-avatar');">
+            <div class="scan-line"></div>
+            <div class="corner-decor top-left"></div>
+            <div class="corner-decor bottom-right"></div>
+          </div>
+          <div class="status-indicator">
+            <span class="status-dot online"></span>
+            <span class="hacker-text" data-ru="СТАТУС: В СЕТИ" data-en="STATUS: ONLINE">СТАТУС: В СЕТИ</span>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <h3 class="role-title">
+            <span class="bracket">[</span> <span class="hacker-text" data-ru="Геймплей Инженер" data-en="Gameplay Engineer">Геймплей Инженер</span> <span class="bracket">]</span>
+          </h3>
+          
+          <p
+          class="bio-text hacker-text"
+          data-ru="Middle Unreal Engine разработчик. Занимаюсь разработкой и поддержкой геймплейных систем, созданием и итерацией прототипов. Работаю с C++ и Blueprints, реализую игровую логику, взаимодействие систем и базовую оптимизацию. Также занимаюсь веб-разработкой: верстаю интерфейсы на HTML и CSS, использую JavaScript для клиентской логики и интерактивности."
+          data-en="Middle Unreal Engine developer focused on gameplay systems and prototyping. Experienced in developing and maintaining gameplay logic using C++ and Blueprints, iterating on mechanics, and handling system interactions and basic optimization. Also involved in web development, building interfaces with HTML and CSS and implementing client-side logic and interactivity using JavaScript."
+        >
+          Middle Unreal Engine разработчик. Занимаюсь разработкой и поддержкой геймплейных систем, созданием и итерацией прототипов. Работаю с C++ и Blueprints, реализую игровую логику, взаимодействие систем и базовую оптимизацию.
+          Также занимаюсь веб-разработкой: верстаю интерфейсы на HTML и CSS, использую JavaScript для клиентской логики и интерактивности.
+        </p>
+
+
+          <div class="bio-stats-grid">
+            <div class="bio-stat">
+              <span class="stat-label hacker-text" data-ru="Локация" data-en="Location">Локация</span>
+              <span class="stat-data">Earth</span>
+            </div>
+            <div class="bio-stat">
+              <span class="stat-label hacker-text" data-ru="Опыт" data-en="Experience">Опыт</span>
+              <span class="stat-data hacker-text" data-ru="1+ Год" data-en="1 Years">1 Год</span>
+            </div>
+            <div class="bio-stat">
+              <span class="stat-label hacker-text" data-ru="Класс" data-en="Main Class">Класс</span>
+              <span class="stat-data hacker-text" data-ru="Программист" data-en="Programmer">Программист</span>
+            </div>
+            <div class="bio-stat">
+              <span class="stat-label hacker-text" data-ru="Оружие" data-en="Weapon">Оружие</span>
+              <span class="stat-data">Unreal Engine</span>
+            </div>
+          </div>
+
+          <div class="about-actions">
+            <a href="resume.pdf" class="btn-cyber-small" target="_blank">
+              <i class="ri-file-download-line"></i>
+              <span class="hacker-text" data-ru="Скачать Резюме" data-en="Download CV">Скачать Резюме</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+   <section id="skills" class="section">
+      <h2 class="hacker-text" data-en="System Modules" data-ru="Модули системы">System Modules</h2>
+      
+      <div class="skills-grid">
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-gamepad-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">Unreal Engine 4 / U5</span>
+              <span class="stat-value">26%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Blueprints, Niagara, Chaos Physics</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-code-s-slash-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">C++ / Core</span>
+              <span class="stat-value">24%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Memory Mgmt, Pointers, Algorithms</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-server-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">Multiplayer / Net</span>
+              <span class="stat-value">10%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Replication, Server Authority</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-cup-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">Java / Backend</span>
+              <span class="stat-value">9%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">OOP, API Integration, Database</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-html5-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">HTML5 / Architecture</span>
+              <span class="stat-value">46%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Semantic DOM, Web Components, Accessibility</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-css3-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">CSS3 / Styling</span>
+              <span class="stat-value">50%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Flexbox/Grid, Keyframes, Responsive UI</div>
+          </div>
+        </div>
+
+        <div class="tech-stat">
+          <div class="stat-icon"><i class="ri-javascript-line"></i></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <span class="stat-name">JavaScript (ES6+)</span>
+              <span class="stat-value">80%</span>
+            </div>
+            <div class="stat-track"><div class="stat-bar"></div></div>
+            <div class="stat-meta">Async/Await, DOM Manipulation, Modules</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  <section id="projects" class="section">
+    <div class="section-header">
+      <h2
+        class="hacker-text"
+        data-ru="Проекты"
+        data-en="Projects"
+      >
+        Проекты
+      </h2>
+      <div class="slider-nav">
+        <button id="slideLeft" class="nav-btn" aria-label="Previous">
+          <i class="ri-arrow-left-s-line"></i>
+        </button>
+        <button id="slideRight" class="nav-btn" aria-label="Next">
+          <i class="ri-arrow-right-s-line"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="projects-container">
+      <div class="projects-track" id="projectsTrack">
+
+        <article class="project-card">
+          <div class="card-image-wrapper">
+            <div class="card-image placeholder">
+              <div class="target-reticle"></div>
+            </div>
+            <div class="card-overlay"></div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags">
+              <span>UE5</span><span>C++</span><span>Gameplay</span>
+            </div>
+            <h3
+              class="hacker-text"
+              data-ru="Прототип боевой системы"
+              data-en="Combat System Prototype"
+            >
+              Прототип боевой системы
+            </h3>
+            <p
+              class="hacker-text"
+              data-ru="Реализация боевой логики с рывками, парированием и системой состояний персонажа."
+              data-en="Implementation of combat logic including dash, parry, and character state management."
+            >
+              Реализация боевой логики с рывками, парированием и системой состояний персонажа.
+            </p>
+            <a
+              href="#"
+              class="card-link hacker-text"
+              data-ru="Подробнее →"
+              data-en="View Details →"
+            >
+              Подробнее →
+            </a>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="card-image-wrapper">
+            <div class="card-image placeholder">
+              <div class="target-reticle"></div>
+            </div>
+            <div class="card-overlay"></div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags">
+              <span>Blueprint</span><span>AI</span>
+            </div>
+            <h3
+              class="hacker-text"
+              data-ru="Система тактического ИИ"
+              data-en="Tactical AI System"
+            >
+              Система тактического ИИ
+            </h3>
+            <p
+              class="hacker-text"
+              data-ru="Поведенческая логика NPC на основе Behavior Trees и Blackboard."
+              data-en="NPC behavior logic based on Behavior Trees and Blackboard."
+            >
+              Поведенческая логика NPC на основе Behavior Trees и Blackboard.
+            </p>
+            <a
+              href="#"
+              class="card-link hacker-text"
+              data-ru="Подробнее →"
+              data-en="View Details →"
+            >
+              Подробнее →
+            </a>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="card-image-wrapper">
+            <div class="card-image placeholder">
+              <div class="target-reticle"></div>
+            </div>
+            <div class="card-overlay"></div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags">
+              <span>C++</span><span>Networking</span>
+            </div>
+            <h3
+              class="hacker-text"
+              data-ru="Многопользовательский FPS"
+              data-en="Multiplayer FPS"
+            >
+              Многопользовательский FPS
+            </h3>
+            <p
+              class="hacker-text"
+              data-ru="Серверная авторитетная логика движения и базовая система матчмейкинга."
+              data-en="Server-authoritative movement logic and basic matchmaking system."
+            >
+              Серверная авторитетная логика движения и базовая система матчмейкинга.
+            </p>
+            <a
+              href="#"
+              class="card-link hacker-text"
+              data-ru="Подробнее →"
+              data-en="View Details →"
+            >
+              Подробнее →
+            </a>
+          </div>
+        </article>
+
+        <article class="project-card">
+          <div class="card-image-wrapper">
+            <div class="card-image placeholder">
+              <div class="target-reticle"></div>
+            </div>
+            <div class="card-overlay"></div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags">
+              <span>Physics</span><span>Vehicles</span>
+            </div>
+            <h3
+              class="hacker-text"
+              data-ru="Модель физики транспорта"
+              data-en="Vehicle Physics Model"
+            >
+              Модель физики транспорта
+            </h3>
+            <p
+              class="hacker-text"
+              data-ru="Настройка и тестирование кастомной модели поведения автомобиля."
+              data-en="Setup and testing of a custom vehicle handling and physics model."
+            >
+              Настройка и тестирование кастомной модели поведения автомобиля.
+            </p>
+            <a
+              href="#"
+              class="card-link hacker-text"
+              data-ru="Подробнее →"
+              data-en="View Details →"
+            >
+              Подробнее →
+            </a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <footer class="footer" id="main-footer">
+    <div class="footer-hud">
+      <div class="hud-corner top-left"></div><div class="hud-corner top-right"></div>
+      <div class="hud-corner bottom-left"></div><div class="hud-corner bottom-right"></div>
+      <div class="hud-text bottom-left-text">COORD: <span class="random-numbers">45.021</span> // <span class="random-numbers">12.993</span></div>
+      <div class="hud-text bottom-right-text">CORE: <span class="status-ok">STABLE</span> // VER: 2.5.1</div>
+    </div>
+
+    <div class="footer-glow"></div>
+    <div class="particles"><span></span><span></span><span></span></div>
+
+    <div class="footer-content">
+      <div class="footer-left">
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span class="status-text hacker-text" data-ru="Система в сети: Готов к работе" data-en="System Online: Open for Work">Система в сети: Готов к работе</span>
+        </div>
+        <p class="copyright hacker-text" data-ru="© 2025 Разработчик игр" data-en="© 2025 Game Developer">© 2025 Разработчик игр</p>
+      </div>
+      <div class="footer-right">
+        <div class="contacts">
+          <a href="mailto:yourmail@example.com" title="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <span class="link-text hacker-text" data-value="Email">Email</span>
+          </a>
+          <a href="https://instagram.com" title="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            <span class="link-text hacker-text" data-value="Instagram">Instagram</span>
+          </a>
+          <a href="https://vk.com" title="VK">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.073 2H8.937C3.342 2 2 3.342 2 8.937v6.126C2 20.658 3.342 22 8.937 22h6.126c5.595 0 6.937-1.342 6.937-6.937V8.937C22 3.342 20.658 2 15.073 2zm3.32 12.872c0 .285-.23.515-.515.515h-1.616c-.456 0-.616-.3-.984-.668-.344-.344-.49-.49-.696-.49-.285 0-.368.204-.368.583v.13c0 .285-.23.445-.515.445h-.735c-1.896 0-3.647-.945-4.823-2.613-1.132-1.604-1.58-3.418-1.58-4.992 0-.285.23-.515.515-.515h1.616c.285 0 .515.23.515.515 0 .914.397 2.375 1.096 3.364.21.3.393.41.536.41.21 0 .273-.105.273-.606V9.06c0-.663-.195-.91-.564-.993-.207-.046-.134-.188.026-.263.428-.204 1.196-.25 1.838-.25.503 0 .633.106.633.684v2.09c0 .227.103.355.228.355.13 0 .26-.128.514-.383.743-.88 1.054-2.227 1.054-3.21 0-.285.23-.515.515-.515h1.616c.285 0 .515.23.515.515 0 .22-.033.456-.1.684-.6 1.48-1.644 2.822-1.644 2.822-.116.16-.156.242 0 .428.156.186.67.662 1.015 1.09 1.01 1.253 1.282 1.83 1.313 2.146z"/></svg>
+            <span class="link-text hacker-text" data-value="VK">VK</span>
+          </a>
+          <a href="https://tiktok.com" title="TikTok">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.117 8.117 0 0 1-1.82-1.41l-.05 7.15c0 1.94-.45 3.99-1.74 5.42-1.42 1.75-3.83 2.51-6 2.05-2.22-.38-4.22-1.92-5-4.01-1.07-2.61-.34-5.91 1.8-7.73 1.51-1.38 3.66-1.84 5.61-1.39V12.9c-1.01-.35-2.23-.22-3.1.41-.83.56-1.21 1.61-1.06 2.58.12 1.11.96 2.07 2.02 2.37 1.03.34 2.31.06 3-.84.44-.52.68-1.19.67-1.87V.02z"/></svg>
+            <span class="link-text hacker-text" data-value="TikTok">TikTok</span>
+          </a>
+          <a href="https://steamcommunity.com" title="Steam">
+            <img src="icons8-steam-64.png" alt="Steam" class="steam-img">
+            <span class="link-text hacker-text" data-value="Steam">Steam</span>
+          </a>
+          <a href="https://github.com" title="GitHub">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+            <span class="link-text hacker-text" data-value="GitHub">GitHub</span>
+          </a>
+        </div>
+        <a href="#" class="back-to-top" aria-label="Back to Top">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="audio-widget" id="audioContainer">
+  <audio id="bgMusic" loop><source src="music.mp3" type="audio/mp3"></audio>
+  <div class="volume-control">
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3">
+  </div>
+  <button id="audioToggle" class="cyber-audio-btn">
+    <div class="equalizer"><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
+    <span class="audio-text hacker-text" 
+          data-ru-off="ЗВУК: ВЫКЛ" 
+          data-en-off="AUDIO: OFF"
+          data-ru-on="ЗВУК: ВКЛ"
+          data-en-on="AUDIO: ON">ЗВУК: ВЫКЛ</span>
+  </button>
+</div>
+
+  <div class="video-modal" id="videoModal">
+    <div class="video-overlay"></div>
+    <div class="video-content"><button class="video-close">×</button><iframe id="videoFrame" src="" loading="lazy" allowfullscreen></iframe></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
