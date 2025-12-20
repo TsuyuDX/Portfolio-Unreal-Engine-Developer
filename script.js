@@ -1,13 +1,14 @@
-/* =========================================
-   1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ПЕРЕМЕННЫЕ
-   ========================================= */
+/**
+ * GAMEDEV PORTFOLIO CORE ENGINE v2.5
+ * Sections: 1-11
+ */
+
+// 1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ПЕРЕМЕННЫЕ
 const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
 const isMobile = () => window.innerWidth <= 1024;
 let currentGlobalLang = 'ru'; 
 
-/* =========================================
-   2. SMOOTH SCROLL
-   ========================================= */
+// 2. SMOOTH SCROLL (Плавная навигация)
 document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', e => {
         e.preventDefault();
@@ -23,9 +24,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     });
 });
 
-/* =========================================
-   3. SCROLL ANIMATIONS (PROGRESS & COUNTERS)
-   ========================================= */
+// 3. SCROLL ANIMATIONS (Прогресс-бары и счетчики)
 function animateCounter(el) {
     const targetText = el.getAttribute('data-target') || el.textContent; 
     const target = parseInt(targetText, 10); 
@@ -69,6 +68,7 @@ const sectionObserver = new IntersectionObserver(entries => {
 
 document.querySelectorAll('.section').forEach(s => sectionObserver.observe(s));
 
+// Полоса прокрутки сверху
 window.addEventListener('scroll', () => {
     const progressBar = document.querySelector('.scroll-progress');
     const scrollTop = window.scrollY;
@@ -78,9 +78,7 @@ window.addEventListener('scroll', () => {
     }
 });
 
-/* =========================================
-   4. VIDEO MODAL
-   ========================================= */
+// 4. VIDEO MODAL (Модальное окно видео)
 const modal = document.getElementById('videoModal');
 const iframe = document.getElementById('videoFrame');
 const closeBtn = document.querySelector('.video-close');
@@ -97,21 +95,30 @@ document.querySelectorAll('[data-video]').forEach(btn => {
     });
 });
 
-closeBtn?.addEventListener('click', () => {
-    if(modal) modal.classList.remove('active');
-    if(iframe) iframe.src = '';
-    document.body.style.overflow = '';
-});
-
-/* =========================================
-   5. HACKER TEXT: STABLE DECRYPTION (UPDATED)
-   ========================================= */
+if(closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        if(modal) modal.classList.remove('active');
+        if(iframe) iframe.src = '';
+        document.body.style.overflow = '';
+    });
+}
+// 5. HACKER TEXT: STABLE DECRYPTION
 document.querySelectorAll(".hacker-text").forEach(element => {
     let interval = null;
     if (element.classList.contains('audio-text')) return;
 
     const runScramble = (text) => {
         if (!text) return; 
+
+        // Если есть класс no-scramble у элемента или родителя — мгновенная смена
+        const isNoScramble = element.classList.contains('no-scramble') || element.closest('.no-scramble');
+
+        if (isNoScramble) {
+            element.innerText = text;
+            return;
+        }
+
+        // Логика дешифрации (scramble effect)
         let iterations = 0;
         element.classList.add('animating');
         clearInterval(interval);
@@ -130,6 +137,7 @@ document.querySelectorAll(".hacker-text").forEach(element => {
         }, 30);
     };
 
+    // Событие наведения (MouseEnter) — должно работать всегда
     element.addEventListener("mouseenter", () => {
         if (!isMobile()) {
             const targetLang = (currentGlobalLang === 'ru') ? 'en' : 'ru';
@@ -137,28 +145,14 @@ document.querySelectorAll(".hacker-text").forEach(element => {
         }
     });
 
+    // Событие ухода курсора (MouseLeave)
     element.addEventListener("mouseleave", () => {
         if (!isMobile()) {
             runScramble(element.getAttribute(`data-${currentGlobalLang}`));
         }
     });
-
-    element.addEventListener("click", () => {
-        if (isMobile()) {
-            const textEn = element.getAttribute('data-en');
-            const textRu = element.getAttribute('data-ru');
-            const isShowingEn = element.getAttribute('data-current') === 'en';
-            
-            const nextText = isShowingEn ? textRu : textEn;
-            element.innerText = nextText;
-            element.setAttribute('data-current', isShowingEn ? 'ru' : 'en');
-        }
-    });
 });
-
-/* =========================================
-   6. GLOBAL MOBILE TRANSLATION
-   ========================================= */
+// 6. GLOBAL MOBILE TRANSLATION (Глобальный переключатель языков)
 const mobileLangBtn = document.getElementById('mobile-lang-toggle');
 
 if (mobileLangBtn) {
@@ -171,117 +165,79 @@ if (mobileLangBtn) {
             const newText = el.getAttribute(`data-${currentGlobalLang}`);
             if (newText) {
                 el.innerText = newText;
-                el.setAttribute('data-current', currentGlobalLang);
             }
         });
 
-        if (typeof updateAudioLabel === "function") updateAudioLabel(false);
+        // Синхронизация с аудио-меткой
+        if (typeof updateAudioLabel === "function") updateAudioLabel();
 
         mobileLangBtn.style.transform = 'scale(0.9)';
         setTimeout(() => mobileLangBtn.style.transform = 'scale(1)', 100);
     });
 }
 
-/* =========================================
-   7. PROJECT SLIDER: AUTO-SCROLL & CENTER (OPTIMIZED)
-   ========================================= */
+// 7. PROJECT SLIDER: AUTO-SCROLL & NAVIGATION (Слайдер проектов)
 const track = document.getElementById('projectsTrack');
 const btnLeft = document.getElementById('slideLeft');
 const btnRight = document.getElementById('slideRight');
 
 if (track) {
-    let isPaused = false;
-    let autoScrollInterval;
-
     const getScrollStep = () => {
         const card = track.querySelector('.project-card');
         return isMobile() ? track.offsetWidth : (card ? card.offsetWidth + 30 : 350);
     };
 
-    const nextSlide = () => {
-        if (isPaused || !track) return;
-        
-        const maxScroll = track.scrollWidth - track.clientWidth;
-        if (track.scrollLeft >= maxScroll - 20) {
-            track.scrollTo({ left: 0, behavior: 'smooth' });
-        } else {
-            track.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
-        }
-    };
-
-    const startAutoScroll = () => {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = setInterval(nextSlide, 4000);
-    };
-
-    track.addEventListener('touchstart', () => { isPaused = true; }, {passive: true});
-    track.addEventListener('touchend', () => {
-        setTimeout(() => { isPaused = false; }, 5000);
-    }, {passive: true});
-
     if (btnLeft && btnRight) {
         btnLeft.addEventListener('click', () => {
             track.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
-            isPaused = true;
         });
         btnRight.addEventListener('click', () => {
             track.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
-            isPaused = true;
         });
     }
-
-    if (isMobile()) startAutoScroll();
 }
 
-/* =========================================
-   8. AUDIO SYSTEM
-   ========================================= */
+// 8. AUDIO SYSTEM (Улучшенная логика для новой структуры)
 const audioBtn = document.getElementById('audioToggle');
 const bgMusic = document.getElementById('bgMusic');
 const volumeSlider = document.getElementById('volumeSlider');
-const audioText = audioBtn?.querySelector('.audio-text');
+const audioTextEl = audioBtn?.querySelector('.audio-text');
 
-function updateAudioLabel(isHover) {
-    if (!audioBtn || !bgMusic || !audioText) return;
-    if (isMobile() && getComputedStyle(audioText).display === 'none') return;
-
+function updateAudioLabel() {
+    if (!audioBtn || !bgMusic || !audioTextEl) return;
     const isPlaying = !bgMusic.paused;
-    const useEn = isHover || (isMobile() && currentGlobalLang === 'en');
-    
-    if (useEn) {
-        audioText.innerText = isPlaying ? "AUDIO: ON" : "AUDIO: OFF";
-    } else {
-        audioText.innerText = isPlaying ? "ЗВУК: ВКЛ" : "ЗВУК: ВЫКЛ";
+    const state = isPlaying ? 'on' : 'off';
+    const newText = audioTextEl.getAttribute(`data-${currentGlobalLang}-${state}`);
+    if (newText) {
+        audioTextEl.innerText = newText;
     }
 }
 
 if (audioBtn && bgMusic && volumeSlider) {
     bgMusic.volume = volumeSlider.value;
+    volumeSlider.style.setProperty('--value', `${volumeSlider.value * 100}%`);
 
     audioBtn.addEventListener('click', () => {
         if (bgMusic.paused) {
             bgMusic.play().then(() => {
                 audioBtn.classList.add('playing');
-                updateAudioLabel(false);
-            }).catch(e => console.log("Autoplay blocked"));
+                updateAudioLabel();
+            }).catch(e => console.log("Autoplay blocked by browser"));
         } else {
             bgMusic.pause();
             audioBtn.classList.remove('playing');
-            updateAudioLabel(false);
+            updateAudioLabel();
         }
     });
 
-    audioBtn.addEventListener('mouseenter', () => { if(!isMobile()) updateAudioLabel(true); });
-    audioBtn.addEventListener('mouseleave', () => { if(!isMobile()) updateAudioLabel(false); });
-
     volumeSlider.addEventListener('input', (e) => {
-        bgMusic.volume = e.target.value;
+        const val = e.target.value;
+        bgMusic.volume = val;
+        e.target.style.setProperty('--value', `${val * 100}%`);
     });
 }
 
-/* =========================================
-   9. FOOTER RIPPLES & HQ HINT
-   ========================================= */
+// 9. FOOTER RIPPLES & HQ HINT (Эффекты футера и подсказка)
 const footer = document.getElementById('main-footer');
 if (footer) {
     footer.addEventListener('mousemove', (e) => {
@@ -291,24 +247,21 @@ if (footer) {
             footer.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
         }
     });
-
+    
     footer.addEventListener('click', (e) => {
         const container = footer.querySelector('.footer-hud'); 
         if (!container) return; 
         const ripple = document.createElement('div');
         ripple.classList.add('click-ripple');
         const rect = container.getBoundingClientRect();
-        
-        const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
-        const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-
-        ripple.style.left = `${clientX - rect.left}px`;
-        ripple.style.top = `${clientY - rect.top}px`;
+        ripple.style.left = `${e.clientX - rect.left}px`;
+        ripple.style.top = `${e.clientY - rect.top}px`;
         container.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
     });
 }
 
+// Системная подсказка при загрузке
 window.addEventListener('DOMContentLoaded', () => {
     const hint = document.createElement('div');
     hint.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);"></span><p>SYSTEM: Use <b>EN</b> button to translate</p></div>`;
@@ -325,9 +278,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 9000);
 });
 
-/* =========================================
-   10. FOOTER BOUNDS STABILIZER
-   ========================================= */
+// 10. FOOTER BOUNDS STABILIZER (Стабилизация мобильного футера)
 function stabilizeFooter() {
     if (!isMobile()) return;
     const footer = document.getElementById('main-footer');
@@ -340,3 +291,17 @@ function stabilizeFooter() {
 }
 window.addEventListener('scroll', stabilizeFooter);
 window.addEventListener('resize', stabilizeFooter);
+
+// 11. RANDOM AVATAR GLITCH (Случайные помехи на аватаре)
+const avatarWrapper = document.querySelector('.profile-frame');
+
+if (avatarWrapper) {
+    setInterval(() => {
+        if (Math.random() > 0.95) { // Шанс 5% на эффект каждую итерацию
+            avatarWrapper.style.filter = `hue-rotate(${Math.random() * 90}deg) contrast(1.2) brightness(1.1)`;
+            setTimeout(() => {
+                avatarWrapper.style.filter = 'none';
+            }, 150);
+        }
+    }, 4000);
+}
