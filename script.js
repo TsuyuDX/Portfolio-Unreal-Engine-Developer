@@ -102,6 +102,7 @@ if(closeBtn) {
         document.body.style.overflow = '';
     });
 }
+
 // 5. HACKER TEXT: STABLE DECRYPTION
 document.querySelectorAll(".hacker-text").forEach(element => {
     let interval = null;
@@ -110,7 +111,6 @@ document.querySelectorAll(".hacker-text").forEach(element => {
     const runScramble = (text) => {
         if (!text) return; 
 
-        // Если есть класс no-scramble у элемента или родителя — мгновенная смена
         const isNoScramble = element.classList.contains('no-scramble') || element.closest('.no-scramble');
 
         if (isNoScramble) {
@@ -118,7 +118,6 @@ document.querySelectorAll(".hacker-text").forEach(element => {
             return;
         }
 
-        // Логика дешифрации (scramble effect)
         let iterations = 0;
         element.classList.add('animating');
         clearInterval(interval);
@@ -137,7 +136,6 @@ document.querySelectorAll(".hacker-text").forEach(element => {
         }, 30);
     };
 
-    // Событие наведения (MouseEnter) — должно работать всегда
     element.addEventListener("mouseenter", () => {
         if (!isMobile()) {
             const targetLang = (currentGlobalLang === 'ru') ? 'en' : 'ru';
@@ -145,13 +143,13 @@ document.querySelectorAll(".hacker-text").forEach(element => {
         }
     });
 
-    // Событие ухода курсора (MouseLeave)
     element.addEventListener("mouseleave", () => {
         if (!isMobile()) {
             runScramble(element.getAttribute(`data-${currentGlobalLang}`));
         }
     });
 });
+
 // 6. GLOBAL MOBILE TRANSLATION (Глобальный переключатель языков)
 const mobileLangBtn = document.getElementById('mobile-lang-toggle');
 
@@ -168,7 +166,6 @@ if (mobileLangBtn) {
             }
         });
 
-        // Синхронизация с аудио-меткой
         if (typeof updateAudioLabel === "function") updateAudioLabel();
 
         mobileLangBtn.style.transform = 'scale(0.9)';
@@ -197,7 +194,7 @@ if (track) {
     }
 }
 
-// 8. AUDIO SYSTEM (Улучшенная логика для новой структуры)
+// 8. AUDIO SYSTEM (Синхронизация с пульсацией фона)
 const audioBtn = document.getElementById('audioToggle');
 const bgMusic = document.getElementById('bgMusic');
 const volumeSlider = document.getElementById('volumeSlider');
@@ -221,11 +218,13 @@ if (audioBtn && bgMusic && volumeSlider) {
         if (bgMusic.paused) {
             bgMusic.play().then(() => {
                 audioBtn.classList.add('playing');
+                document.body.classList.add('music-playing'); // Активация быстрой пульсации фона
                 updateAudioLabel();
-            }).catch(e => console.log("Autoplay blocked by browser"));
+            }).catch(e => console.log("Autoplay blocked"));
         } else {
             bgMusic.pause();
             audioBtn.classList.remove('playing');
+            document.body.classList.remove('music-playing'); // Возврат к спокойному ритму фона
             updateAudioLabel();
         }
     });
@@ -260,6 +259,14 @@ if (footer) {
         setTimeout(() => ripple.remove(), 600);
     });
 }
+
+// Интерактивный фон: обновление координат курсора
+window.addEventListener('mousemove', (e) => {
+    if (!isMobile()) {
+        document.body.style.setProperty('--cursor-x', `${e.clientX}px`);
+        document.body.style.setProperty('--cursor-y', `${e.clientY}px`);
+    }
+});
 
 // Системная подсказка при загрузке
 window.addEventListener('DOMContentLoaded', () => {
@@ -297,7 +304,7 @@ const avatarWrapper = document.querySelector('.profile-frame');
 
 if (avatarWrapper) {
     setInterval(() => {
-        if (Math.random() > 0.95) { // Шанс 5% на эффект каждую итерацию
+        if (Math.random() > 0.95) {
             avatarWrapper.style.filter = `hue-rotate(${Math.random() * 90}deg) contrast(1.2) brightness(1.1)`;
             setTimeout(() => {
                 avatarWrapper.style.filter = 'none';
@@ -305,3 +312,19 @@ if (avatarWrapper) {
         }
     }, 4000);
 }
+
+// 12. INTERACTIVE FLASHLIGHT EFFECT
+// Обновление координат фонарика и курсора
+window.addEventListener('mousemove', (e) => {
+    if (!isMobile()) {
+        const x = e.clientX + 'px';
+        const y = e.clientY + 'px';
+        
+        document.documentElement.style.setProperty('--flashlight-x', x);
+        document.documentElement.style.setProperty('--flashlight-y', y);
+        
+        // Для обратной совместимости с вашими старыми стилями
+        document.body.style.setProperty('--cursor-x', x);
+        document.body.style.setProperty('--cursor-y', y);
+    }
+});
