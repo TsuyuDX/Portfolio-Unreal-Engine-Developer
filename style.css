@@ -1,22 +1,9 @@
-/*  1. GLOBAL VARIABLES & RESET */
+/* 1. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH ANIMATED PARTICLES */
 
-html, body {
-    -webkit-user-select: none; 
-    -ms-user-select: none;     
-    user-select: none;        
-    -webkit-tap-highlight-color: transparent;
-}
-
-input, textarea {
-    -webkit-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-}
+/* 1. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH FLASHLIGHT */
 
 :root {
-   
-    /* Основная палитра (Только Dark Mode) */
-   
+    /* Основная палитра */
     --bg: #0e0e11;
     --bg-secondary: #16161c;
     --text: #ffffff;
@@ -25,31 +12,143 @@ input, textarea {
     --accent-glow: rgba(108, 242, 194, 0.4);
     --placeholder: #2a2a35;
     
-    /* Тайминги и кривые */
-   
+    /* Тайминги */
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+    /* Параметры сетки */
+    --grid-color: rgba(108, 242, 194, 0.04);
+    --grid-major-color: rgba(108, 242, 194, 0.08);
+    --grid-size: 40px;
+
+    /* Координаты фонарика (обновляются через JS) */
+    --cursor-x: 50%;
+    --cursor-y: 50%;
+    --flashlight-x: 50%;
+    --flashlight-y: 50%;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+input, textarea { 
+    user-select: text; 
+    -webkit-user-select: text;
 }
 
 body {
     font-family: 'Arial', 'Inter', sans-serif;
-    background: var(--bg);
+    background-color: var(--bg);
     color: var(--text);
     line-height: 1.6;
     scroll-behavior: smooth;
     overflow-x: hidden;
-   
-    /* Убираем синее выделение при тапе на мобилках */
-   
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    min-height: 100vh;
 }
 
+/* СЛОЙ 1: СТАТИЧНАЯ СЕТКА И ПУЛЬСИРУЮЩИЕ ТОЧКИ */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image: 
+        radial-gradient(var(--accent) 1px, transparent 1px),
+        linear-gradient(to right, var(--grid-major-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-major-color) 1px, transparent 1px),
+        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: 200px 200px, 200px 200px, 200px 200px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+    background-attachment: fixed;
+    animation: bg-hud-pulse 4s infinite ease-in-out;
+}
+
+/* СЛОЙ 2: ДВИЖУЩИЕСЯ ОГОНЬКИ (DATA FLOW) */
+.data-flow-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background-size: 200% 2px;
+    mask-image: linear-gradient(to bottom, 
+        transparent, 
+        black var(--grid-size), 
+        transparent calc(var(--grid-size) + 1px)
+    );
+    mask-size: 100% var(--grid-size);
+    opacity: 0.1;
+    animation: data-stream 8s linear infinite;
+}
+
+/* СЛОЙ 3: ИНТЕРАКТИВНЫЙ ФОНАРИК И ВИНЬЕТКА */
+.hud-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: 
+        /* Основное пятно фонарика */
+        radial-gradient(
+            600px circle at var(--flashlight-x) var(--flashlight-y), 
+            rgba(108, 242, 194, 0.15), 
+            transparent 40%
+        ),
+        /* Вторичное мягкое свечение */
+        radial-gradient(
+            600px circle at var(--cursor-x) var(--cursor-y), 
+            rgba(108, 242, 194, 0.035), 
+            transparent 40%
+        ),
+        /* Глобальная виньетка */
+        radial-gradient(circle at center, transparent 0%, rgba(14, 14, 17, 0.4) 70%, rgba(14, 14, 17, 0.9) 100%);
+}
+
+/* АНИМАЦИИ */
+@keyframes data-stream {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes bg-hud-pulse {
+    0%, 100% { filter: brightness(1); opacity: 0.8; }
+    50% { filter: brightness(1.4); opacity: 1; }
+}
+
+/* Реакция на музыку */
+body.music-playing::before { animation-duration: 1.5s; }
+body.music-playing .data-flow-layer { animation-duration: 2s; opacity: 0.3; }
+
+/* ТЕХНИЧЕСКИЙ ТЕКСТ */
+body::after {
+    content: "COORD: 45.021 // 12.993 \A CORE: STABLE // VER: 2.5.1";
+    white-space: pre;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    opacity: 0.3;
+    letter-spacing: 2px;
+    z-index: 1000;
+}
+
+@media (max-width: 1024px) {
+    body::before {
+        --grid-size: 30px;
+        background-size: 150px 150px, 150px 150px, 150px 150px, 30px 30px, 30px 30px;
+    }
+    .data-flow-layer, .hud-overlay, body::after { display: none; }
+}
 /*  2. UI UTILS (Scrollbar & Stability) */
 
 .scroll-progress {
@@ -1943,5 +2042,76 @@ button.cyber-audio-btn.playing .bar {
     .footer-hud a {
         width: 200px;
         justify-content: center;
+    }
+}
+
+@media (max-width: 1024px) {
+    .audio-widget {
+        position: fixed !important;
+        left: 5px !important;  
+        bottom: 5px !important; 
+        width: 65px; height: 65px;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button.cyber-audio-btn {
+        width: 55px !important; 
+        height: 55px !important;
+        background: rgba(14, 14, 17, 0.95) !important;
+        border: 1px solid var(--accent) !important;
+        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    
+    button.cyber-audio-btn.playing {
+        animation: music-jump-mobile 1.5s infinite ease-in-out;
+    }
+
+    .audio-icon-box i {
+        display: block !important;
+        font-size: 1.3rem !important;
+        color: var(--accent);
+        opacity: 0.6;
+        transform: none !important; 
+    }
+
+    button.cyber-audio-btn.playing .audio-icon-box i {
+        opacity: 1;
+        filter: drop-shadow(0 0 5px var(--accent));
+    }
+
+    #mobile-lang-toggle {
+        position: fixed !important;
+        right: 5px !important; 
+        bottom: 5px !important;
+        width: 60px; height: 60px;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(14, 14, 17, 0.95);
+        border: 1px solid var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+
+    }
+}
+
+@keyframes music-jump-mobile {
+    0%, 100% { 
+        transform: translateY(0) scale(1); 
+        box-shadow: 0 0 10px var(--accent-glow);
+    }
+    50% { 
+        transform: translateY(-8px) scale(1.05); 
+        box-shadow: 0 10px 20px var(--accent-glow);
     }
 }
