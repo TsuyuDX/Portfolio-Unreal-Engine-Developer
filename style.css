@@ -1,5 +1,18 @@
 /*  1. GLOBAL VARIABLES & RESET */
 
+html, body {
+    -webkit-user-select: none; 
+    -ms-user-select: none;     
+    user-select: none;        
+    -webkit-tap-highlight-color: transparent;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
 :root {
    
     /* Основная палитра (Только Dark Mode) */
@@ -292,7 +305,7 @@ body {
 .section.visible { opacity: 1; transform: translateY(0); }
 .section h2 { text-align: center; font-size: 2.2rem; margin-bottom: 40px; }
 
-/* ABOUT SECTION: CHARACTER SHEET */
+/* ABOUT SECTION: CHARACTER SHEET (STATIC TECH HUD) */
 
 .about-card {
   display: grid;
@@ -311,23 +324,69 @@ body {
 
 .profile-frame {
   width: 100%; height: 280px; position: relative; overflow: hidden;
-  border: 1px solid rgba(108, 242, 194, 0.3); background: #000;
+  border: 1px solid rgba(108, 242, 194, 0.3); 
+  background: #000;
   clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
 }
 
+/* ФОНОВЫЙ БИНАРНЫЙ КОД - СТАТИЧНЫЙ */
+.profile-frame::before {
+  content: "1010110100110101110101100001101110101101001101011101011000011011";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  color: rgba(108, 242, 194, 0.1);
+  word-break: break-all;
+  z-index: 0;
+  padding: 10px;
+  pointer-events: none;
+}
+
+/* ТОЧЕЧНАЯ СЕТКА HUD - ПОВЕРХ ВСЕГО */
+.profile-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--accent) 1px, transparent 1px);
+  background-size: 14px 14px;
+  opacity: 0.15;
+  z-index: 4;
+  pointer-events: none;
+}
+
 .profile-img {
-  width: 100%; height: 100%; object-fit: cover; opacity: 0.9;
-  filter: grayscale(20%) contrast(1.1); transition: all 0.5s ease;
+  width: 100%; height: 100%; object-fit: cover; 
+  opacity: 0.9;
+  /* Легкая цветокоррекция под стиль HUD */
+  filter: grayscale(30%) contrast(1.1);
+  transition: opacity 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* УБРАНЫ ВСЕ ГЛЮКИ - ОСТАВЛЕНО ТОЛЬКО ЛЕГКОЕ ПОВЫШЕНИЕ ЯРКОСТИ */
+.profile-frame:hover .profile-img {
+  opacity: 1;
+  filter: grayscale(0%) contrast(1.2);
 }
 
 .scan-line {
-  position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-  background: var(--accent); box-shadow: 0 0 10px var(--accent);
-  opacity: 0.6; animation: scan-vertical 3s linear infinite;
+  position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+  background: rgba(108, 242, 194, 0.5); 
+  box-shadow: 0 0 15px var(--accent);
+  opacity: 0.8; z-index: 5;
+  animation: scan-vertical 4s linear infinite;
 }
-@keyframes scan-vertical { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-.corner-decor { position: absolute; width: 15px; height: 15px; border: 2px solid var(--accent); z-index: 2; }
+@keyframes scan-vertical { 
+  0% { top: 0%; opacity: 0; } 
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100%; opacity: 0; } 
+}
+
+.corner-decor { position: absolute; width: 15px; height: 15px; border: 2px solid var(--accent); z-index: 6; }
 .corner-decor.top-left { top: 5px; left: 5px; border-right: none; border-bottom: none; }
 .corner-decor.bottom-right { bottom: 5px; right: 5px; border-left: none; border-top: none; }
 
@@ -364,26 +423,6 @@ body {
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 .btn-cyber-small:hover { background: var(--accent); color: #0e0e11; box-shadow: 0 0 15px var(--accent-glow); }
-
-.placeholder-avatar {
-  background: repeating-linear-gradient(45deg, #16161c, #16161c 10px, #1c1c24 10px, #1c1c24 20px);
-}
-
-/* Placeholders (General) */
-
-.placeholder {
-  position: relative; overflow: hidden;
-  background: linear-gradient(135deg, var(--placeholder), #1c1c26);
-  border-radius: 12px;
-}
-.placeholder::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.08) 37%, transparent 63%);
-  animation: shimmer 1.6s infinite;
-}
-@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-
-/*  4 SKILLS: SYSTEM MODULES (IMPROVED) */
 
 .skills-grid {
   display: grid;
@@ -453,9 +492,7 @@ body {
 .section.visible .stat-bar { width: var(--w); }
 .stat-meta { font-size: 0.75rem; color: var(--muted); line-height: 1.4; opacity: 0.8; }
 
-/*  5 PROJECTS: SLIDER HUD STYLE (REFINED) */
-
-/* Заголовок и навигация */
+/* 5. PROJECTS: SLIDER HUD STYLE (FINAL STABILITY) */
 
 .section-header {
   display: flex;
@@ -472,7 +509,6 @@ body {
 }
 
 /* Кнопки навигации */
-
 .nav-btn {
   background: rgba(22, 22, 28, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -508,38 +544,30 @@ body {
 .nav-btn:active { transform: scale(0.95); }
 
 /* Контейнер слайдера */
-
 .projects-container {
   width: 100%;
   overflow: hidden;
   position: relative;
-  /* Градиентная маска справа */
-
   mask-image: linear-gradient(to right, black 85%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
 }
 
 /* Дорожка (Скролл) */
-
 .projects-track {
   display: flex;
   gap: 30px;
   overflow-x: auto;
   scroll-behavior: smooth;
-  padding-bottom: 40px; /* Отступ для тени */
+  padding-bottom: 40px; 
   padding-right: 40px;
-  
-  /* Скрытие скроллбара */
-
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .projects-track::-webkit-scrollbar { display: none; }
 
 /* Карточка */
-
 .project-card {
-  min-width: 340px; /* Ширина карточки */
+  min-width: 340px; 
   max-width: 340px;
   background: var(--bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -550,9 +578,10 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  /* Принудительное выравнивание всего контента по левому краю */
+  align-items: flex-start;
+  text-align: left;
 }
-
-/* Hover эффект карточки */
 
 .project-card:hover {
   transform: translateY(-10px);
@@ -562,8 +591,8 @@ body {
 }
 
 /* Изображение */
-
 .card-image-wrapper {
+  width: 100%;
   height: 200px;
   position: relative;
   overflow: hidden;
@@ -576,8 +605,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 
-/* Прицел (Target Reticle) */
-
+/* Прицел */
 .target-reticle {
   width: 50px; height: 50px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -585,8 +613,6 @@ body {
   position: relative;
   transition: all 0.5s ease;
 }
-
-/* Анимация при наведении */
 
 .project-card:hover .target-reticle {
   transform: rotate(90deg) scale(1.2);
@@ -607,13 +633,16 @@ body {
   background: linear-gradient(to top, rgba(14, 14, 17, 0.95), transparent);
   opacity: 0.4; transition: opacity 0.3s ease;
 }
-.project-card:hover .card-overlay { opacity: 0.2; }
 
 /* Контент */
-
 .card-content {
   padding: 25px;
-  display: flex; flex-direction: column; flex-grow: 1;
+  display: flex; 
+  flex-direction: column; 
+  flex-grow: 1;
+  width: 100%;
+  /* Выравнивание дочерних элементов по левому краю */
+  align-items: flex-start; 
 }
 
 .card-tags {
@@ -631,36 +660,55 @@ body {
   letter-spacing: 0.5px;
 }
 
+/* Фиксированный заголовок */
 .project-card h3 {
-  margin-bottom: 10px; font-size: 1.3rem; color: #fff;
+  margin-bottom: 12px; 
+  font-size: 1.3rem; 
+  color: #fff;
   transition: color 0.3s ease;
+  min-height: 3.2em; 
+  line-height: 1.2;
+  display: block; /* Уходим от flex для стабильности текста */
+  width: 100%;
+  text-align: left;
 }
 .project-card:hover h3 { color: var(--accent); }
 
+/* Фиксированное описание */
 .project-card p {
-  font-size: 0.95rem; color: var(--muted); margin-bottom: 25px;
-  flex-grow: 1; line-height: 1.6;
+  font-size: 0.95rem; 
+  color: var(--muted); 
+  margin-bottom: 25px;
+  line-height: 1.6;
+  min-height: 4.8em; 
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
 .card-link {
-  color: #fff; text-decoration: none; font-weight: 700;
-  text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;
-  display: inline-flex; align-items: center; gap: 8px;
+  color: #fff; 
+  text-decoration: none; 
+  font-weight: 700;
+  text-transform: uppercase; 
+  font-size: 0.85rem; 
+  letter-spacing: 1px;
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px;
   transition: all 0.3s ease;
-  align-self: flex-start;
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
+  margin-top: auto; 
+  text-align: left;
 }
 .card-link:hover {
   color: var(--accent); gap: 12px; border-bottom-color: var(--accent);
 }
 
-/* Адаптив для слайдера */
-
 @media (max-width: 768px) {
   .project-card { min-width: 280px; max-width: 280px; }
   .projects-container { mask-image: none; -webkit-mask-image: none; }
-  .section-header { flex-direction: row; align-items: center; }
 }
 /* 6  FOOTER: GOD TIER (Preserved) */
 
@@ -812,114 +860,256 @@ body {
 .back-to-top:hover::before { top: 0; }
 .back-to-top:hover svg { color: #000; transform: translateY(-3px); }
 
-/* 9. AUDIO WIDGET (CYBER HUD) + FIXED ICONS */
+/* 9. AUDIO WIDGET: SLIDING TAB WITH VISIBLE ICON */
 
 .audio-widget {
     position: fixed;
-    bottom: 30px;
-    left: 30px;
-    z-index: 1000;
+    bottom: 50px;
+    left: 0;
+    z-index: 1100;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px;
+    /* Теперь скрываем так, чтобы иконка оставалась снаружи (примерно 55px) */
+    transform: translateX(calc(-100% + 55px)); 
+    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* Контейнер ползунка громкости */
+/* Зона захвата для стабильности */
+.audio-widget::after {
+    content: '';
+    position: absolute;
+    top: -10px; right: -30px; bottom: -10px; left: 0;
+    z-index: -1;
+}
 
+.audio-widget:hover {
+    transform: translateX(0);
+}
+
+/* Контроль громкости (выезжает вбок) */
 .volume-control {
-    background: rgba(14, 14, 17, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 10px;
-    border-radius: 4px;
+    background: rgba(14, 14, 17, 0.95) !important;
+    border: 1px solid var(--accent) !important;
+    padding: 12px !important;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    justify-content: center;
     opacity: 0;
-    transform: translateY(10px) scale(0.9);
+    transform: translateX(-20px);
     pointer-events: none;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.4s ease;
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%) !important;
+    margin-left: 10px;
 }
 
 .audio-widget:hover .volume-control {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
     pointer-events: all;
+    transition-delay: 0.1s;
 }
 
 #volumeSlider {
     -webkit-appearance: none;
     width: 80px; height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
+    background: rgba(108, 242, 194, 0.1);
+}
+
+#volumeSlider::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--accent) var(--value, 50%), rgba(255,255,255,0.1) var(--value, 50%));
 }
 
 #volumeSlider::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 12px; height: 12px;
-    background: var(--accent);
-    border-radius: 2px;
-    box-shadow: 0 0 10px var(--accent-glow);
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    margin-top: -4px;
 }
 
-/* Кнопка Аудио */
+/* Кнопка-закладка: ДИЗАЙН С ЦИФРОВОЙ КРОМКОЙ */
+button.cyber-audio-btn {
+    background: rgba(14, 14, 17, 0.95) !important;
+    border: 1px solid rgba(108, 242, 194, 0.3) !important;
+    /* Акцентная линия слева как на скринах кнопок */
+    border-left: 4px solid var(--accent) !important; 
+    padding: 0 !important; /* Убираем падинги, используем ширину дочерних элементов */
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 92% 100%, 0% 100%) !important;
+    height: 48px;
+    overflow: hidden;
+}
 
-.cyber-audio-btn {
-    background: rgba(14, 14, 17, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 3px solid var(--muted);
-    padding: 10px 18px;
+/* Фиксированная зона для иконки (всегда видна слева) */
+.audio-icon-box {
+    width: 55px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(108, 242, 194, 0.1);
+}
+
+/* Скрытая текстовая часть */
+.audio-info-box {
+    padding: 0 20px 0 15px;
     display: flex;
     align-items: center;
     gap: 12px;
-    cursor: pointer;
-    transition: all 0.3s var(--transition-base);
-    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-    backdrop-filter: blur(5px);
+    white-space: nowrap;
 }
 
-/* Стили для иконки */
-
-.cyber-audio-btn i {
-    font-size: 1.1rem;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-}
-
-.cyber-audio-btn.playing i {
-    color: var(--accent);
-    text-shadow: 0 0 8px var(--accent-glow);
+button.cyber-audio-btn.playing {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 20px var(--accent-glow) !important;
 }
 
 .audio-text {
     font-family: 'Consolas', monospace;
-    font-size: 0.7rem;
-    color: var(--muted);
-    font-weight: 700;
+    font-size: 0.75rem !important;
     letter-spacing: 1px;
-    text-transform: uppercase;
+    color: var(--muted);
 }
 
-.cyber-audio-btn.playing .audio-text {
-    color: var(--accent);
-}
+button.cyber-audio-btn.playing .audio-text { color: var(--accent) !important; }
+button.cyber-audio-btn.playing i { color: var(--accent); }
 
 /* Эквалайзер */
-
-.equalizer { display: flex; gap: 3px; height: 12px; align-items: flex-end; }
-.bar { width: 3px; height: 2px; background-color: var(--muted); transition: 0.3s; }
-.cyber-audio-btn.playing .bar {
+.equalizer { display: flex; gap: 3px; height: 14px; align-items: flex-end; }
+.bar { width: 3px; height: 3px; background-color: var(--muted); }
+button.cyber-audio-btn.playing .bar {
     background-color: var(--accent);
-    animation: equalize 1s infinite ease-in-out;
+    animation: equalize 0.8s infinite ease-in-out;
 }
 
-@keyframes equalize { 0%, 100% { height: 2px; } 50% { height: 12px; } }
+@keyframes equalize { 0%, 100% { height: 3px; } 50% { height: 14px; } }
 
+/* =========================================
+   МОБИЛЬНАЯ ВЕРСИЯ: HEX-WIDGET + RADIAL BURST
+   ========================================= */
+@media (max-width: 1024px) {
+    .audio-widget {
+        left: 30px !important;
+        bottom: 60px !important; /* Подняли выше для удобства */
+        transform: none !important;
+        width: 80px; height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+    }
+    
+    .audio-widget::after { display: none; }
+
+    button.cyber-audio-btn {
+        width: 55px !important; 
+        height: 55px !important;
+        background: rgba(14, 14, 17, 0.98) !important;
+        border: 1px solid var(--accent) !important;
+        position: relative;
+        z-index: 10;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        /* Форма гексагона */
+        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    /* РАДИАЛЬНЫЙ ЭКВАЛАЙЗЕР (ВСПЛЕСКИ СНАРУЖИ) */
+    .audio-info-box {
+        position: absolute;
+        inset: 0;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .equalizer.horizontal {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .equalizer.horizontal .bar {
+        position: absolute;
+        width: 2px;
+        height: 12px;
+        background: var(--accent);
+        opacity: 0;
+        transition: 0.3s;
+        box-shadow: 0 0 10px var(--accent);
+        border-radius: 2px;
+        /* Лучи выходят из центра кнопки */
+        transform-origin: center;
+    }
+
+    /* Расстановка 8 лучей по кругу (каждые 45 градусов) */
+    .equalizer.horizontal .bar:nth-child(1) { transform: rotate(0deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(2) { transform: rotate(45deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(3) { transform: rotate(90deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(4) { transform: rotate(135deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(5) { transform: rotate(180deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(6) { transform: rotate(225deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(7) { transform: rotate(270deg) translateY(-38px); }
+    .equalizer.horizontal .bar:nth-child(8) { transform: rotate(315deg) translateY(-38px); }
+
+    /* АНИМАЦИЯ ПРИ ИГРЕ */
+    button.cyber-audio-btn.playing + .audio-info-box .bar {
+        opacity: 0.7;
+        animation: cyber-burst-mobile 0.6s infinite ease-in-out;
+    }
+
+    /* Хаотичность пульсации */
+    .bar:nth-child(odd) { animation-delay: 0.1s; animation-duration: 0.5s; }
+    .bar:nth-child(even) { animation-delay: 0.3s; animation-duration: 0.7s; }
+
+    @keyframes cyber-burst-mobile {
+        0%, 100% { height: 10px; opacity: 0.4; filter: brightness(1); }
+        50% { height: 24px; opacity: 1; filter: brightness(1.8); }
+    }
+
+    /* Иконка в центре */
+    .audio-icon-box {
+        width: 100%; height: 100%;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border: none !important;
+    }
+    
+    .audio-icon-box i {
+        font-size: 1.3rem !important;
+        color: var(--accent);
+        opacity: 0.6;
+        display: block !important;
+    }
+
+    button.cyber-audio-btn.playing .audio-icon-box i {
+        opacity: 1;
+        animation: pulse-icon-mobile 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-icon-mobile {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--accent)); }
+        50% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--accent)); }
+    }
+
+    /* Прячем текст и громкость */
+    .audio-text, .volume-control { display: none !important; }
+}
 /* 10. VIDEO MODAL & RIPPLES */
 
 .video-modal {
@@ -942,6 +1132,7 @@ body {
 }
 
 @keyframes shockwave { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 300px; height: 300px; opacity: 0; } }
+
 
 /* 11. MOBILE UI & LANGUAGE TOGGLE */
 
@@ -1495,9 +1686,7 @@ body {
         white-space: nowrap;
     }
 }
-/* =========================================
-   BIO TEXT — MULTILINE FIX
-   ========================================= */
+/*   BIO TEXT — MULTILINE FIX */
 
 .bio-text.hacker-text {
     display: block !important;
@@ -1512,15 +1701,11 @@ body {
 }
 
 
-/* =========================================
-   FINAL MOBILE STABILIZATION BLOCK
-   ========================================= */
+/*  FINAL MOBILE STABILIZATION BLOCK*/
 
 @media (max-width: 768px) {
 
-    /* -----------------------------------------
-       1. SECTION CONTAINERS
-       ----------------------------------------- */
+    /* 1. SECTION CONTAINERS */
 
     .section {
         padding: 40px 15px !important;
@@ -1528,10 +1713,7 @@ body {
     }
 
 
-    /* -----------------------------------------
-       2. ABOUT / BIO
-       ----------------------------------------- */
-
+    /*  2. ABOUT / BIO*/
     .about-card {
         display: flex !important;
         flex-direction: column !important;
@@ -1557,9 +1739,7 @@ body {
     }
 
 
-    /* -----------------------------------------
-       3. PROJECTS / MISSION LOG
-       ----------------------------------------- */
+    /*  3. PROJECTS / MISSION LOG */
 
     .projects-track {
         display: flex;
@@ -1604,9 +1784,7 @@ body {
     }
 
 
-    /* -----------------------------------------
-       4. FOOTER / FLOATING UI
-       ----------------------------------------- */
+    /*  4. FOOTER / FLOATING UI*/
 
     .footer-left {
         padding-left: 70px !important;
@@ -1636,9 +1814,7 @@ body {
     }
 
 
-    /* -----------------------------------------
-       5. HUD CLEANUP
-       ----------------------------------------- */
+    /*  5. HUD CLEANUP */
 
     .scroll-indicator,
     .volume-control,
@@ -1649,9 +1825,7 @@ body {
 }
 
 
-/* =========================================
-   EXTRA SMALL SCREENS
-   ========================================= */
+/* EXTRA SMALL SCREENS */
 
 @media (max-width: 400px) {
 
@@ -1665,5 +1839,109 @@ body {
 
     .project-card {
         min-width: calc(100vw - 30px) !important;
+    }
+}
+ 
+/* ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
+@media (max-width: 768px) {
+    /* 1. Исправление сетки футера (соцсети) */
+    .footer-hud {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    /* Делаем кнопки соцсетей шире для удобства нажатия */
+    .footer-hud a {
+        width: 160px; /* Фиксированная ширина, чтобы не прыгало */
+        justify-content: flex-start;
+    }
+
+    /* 2. Позиционирование переключателя языка (RU) */
+    #mobile-lang-toggle {
+        position: fixed;
+        right: 20px !important;
+        bottom: 30px !important;
+        left: auto !important; /* Сбрасываем left, если был */
+        z-index: 1100;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(14, 14, 17, 0.9);
+        border: 1px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    /* 3. Фикс аудио-виджета (чтобы не перекрывал кнопки) */
+    .audio-widget {
+        left: 20px !important;
+        bottom: 30px !important;
+        right: auto !important;
+    }
+
+    /* 4. Корректировка центральной линии (волны) */
+    .visualizer-line {
+        width: 80% !important; /* Уменьшаем ширину волны на мобилках */
+        margin: 0 auto;
+    }
+
+    /* 5. Кнопка "Смотреть геймплей" - адаптив */
+    .cyber-btn {
+        width: 100%;
+        max-width: 280px;
+        margin: 10px 0;
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Контейнер футера */
+    #main-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+        text-align: center;
+        padding-bottom: 120px;
+    }
+
+    /* 1. Смещение статуса "Система в сети" на 10px влево */
+    .status-badge, 
+    [class*="status"] { 
+        position: relative;
+        left: -10px; /* Прямое смещение влево */
+        margin: 0 auto 15px auto !important;
+        display: inline-flex;
+        justify-content: center;
+    }
+
+    /* 2. Смещение копирайта на 10px влево */
+    .copyright,
+    #main-footer p {
+        position: relative;
+        left: -10px; /* Прямое смещение влево */
+        width: 100%;
+        display: block;
+        margin: 10px 0 !important;
+        text-align: center !important;
+    }
+
+    /* 3. Центрирование списка соцсетей (без смещения, для баланса) */
+    .footer-hud {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .footer-hud a {
+        width: 200px;
+        justify-content: center;
     }
 }
