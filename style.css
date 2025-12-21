@@ -1,2769 +1,3116 @@
-/* 1. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH ANIMATED PARTICLES */
+    /* 0. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH ANIMATED PARTICLES */
 
-/* СКРЫТИЕ HUD ЭЛЕМЕНТОВ ПРИ СКРОЛЛЕ К ФУТЕРУ */
+    /* 1: СКРЫТИЕ HUD ЭЛЕМЕНТОВ */
 
-body.hud-hidden::after {
-    opacity: 0;
-    transition: opacity 0.5s ease;
-}
-
-body.hud-hidden .audio-widget {
-    opacity: 0;
-    pointer-events: none; 
-    transform: translateX(-100px); 
-    transition: all 0.5s ease;
-}
-
-body.hud-hidden #mobile-lang-toggle {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-/* ========================= */
-/* 18. CUSTOM TACTICAL CURSOR */
-/* ========================= */
-
-/* Скрываем системный курсор на всем сайте */
-body {
-  cursor: none; 
-}
-
-/* Контейнер курсора */
-#cursor {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none; /* ВАЖНО: пропускает клики сквозь себя */
-  z-index: 9999;
-  mix-blend-mode: difference; /* Инверсия цвета (по желанию) */
-}
-
-/* Центральная точка (движется мгновенно) */
-.cursor-dot {
-  position: absolute;
-  width: 6px; height: 6px;
-  background: var(--accent);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  /* Начальная позиция за экраном */
-  left: -100px; top: -100px;
-  transition: width 0.2s, height 0.2s, background 0.2s;
-}
-
-/* Внешний круг (движется плавно с задержкой) */
-.cursor-circle {
-  position: absolute;
-  width: 40px; height: 40px;
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  left: -100px; top: -100px;
-  /* Плавность только для размера и цвета, координаты обновляем через JS */
-  transition: width 0.3s, height 0.3s, border-color 0.3s, background 0.3s;
-  box-shadow: 0 0 10px rgba(108, 242, 194, 0.1);
-  opacity: 0.6;
-}
-
-/* --- СОСТОЯНИЕ HOVER (ПРИ НАВЕДЕНИИ) --- */
-/* Класс .hovering добавляется через JS */
-body.hovering .cursor-dot {
-  width: 10px; height: 10px;
-  background: #fff; /* Белая точка при наведении */
-  box-shadow: 0 0 5px #fff;
-}
-
-body.hovering .cursor-circle {
-  width: 60px; height: 60px; /* Круг расширяется */
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.05); /* Легкая заливка */
-  border-width: 2px;
-  opacity: 1;
-}
-
-/* --- МОБИЛЬНАЯ АДАПТАЦИЯ --- */
-/* На телефонах возвращаем обычное поведение */
-@media (max-width: 1024px) {
-  body { cursor: auto; }
-  #cursor { display: none; }
-}
-
-:root {
-    /* Основная палитра */
-    --bg: #0e0e11;
-    --bg-secondary: #16161c;
-    --text: #ffffff;
-    --muted: #b3b3b3;
-    --accent: #6cf2c2;
-    --accent-glow: rgba(108, 242, 194, 0.4);
-    --placeholder: #2a2a35;
-    
-    /* Тайминги */
-    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-
-    /* Параметры сетки */
-    --grid-color: rgba(108, 242, 194, 0.04);
-    --grid-major-color: rgba(108, 242, 194, 0.08);
-    --grid-size: 40px;
-
-    /* Координаты фонарика (обновляются через JS) */
-    --cursor-x: 50%;
-    --cursor-y: 50%;
-    --flashlight-x: 50%;
-    --flashlight-y: 50%;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-input, textarea { 
-    user-select: text; 
-    -webkit-user-select: text;
-}
-
-body {
-    font-family: 'Arial', 'Inter', sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    scroll-behavior: smooth;
-    overflow-x: hidden;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-    min-height: 100vh;
-}
-
-/* СЛОЙ 1: СТАТИЧНАЯ СЕТКА И ПУЛЬСИРУЮЩИЕ ТОЧКИ */
-body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background-image: 
-        radial-gradient(var(--accent) 1px, transparent 1px),
-        linear-gradient(to right, var(--grid-major-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-major-color) 1px, transparent 1px),
-        linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-    background-size: 200px 200px, 200px 200px, 200px 200px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
-    background-attachment: fixed;
-    animation: bg-hud-pulse 4s infinite ease-in-out;
-}
-
-/* СЛОЙ 2: ДВИЖУЩИЕСЯ ОГОНЬКИ (DATA FLOW) */
-.data-flow-layer {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    background-size: 200% 2px;
-    mask-image: linear-gradient(to bottom, 
-        transparent, 
-        black var(--grid-size), 
-        transparent calc(var(--grid-size) + 1px)
-    );
-    mask-size: 100% var(--grid-size);
-    opacity: 0.1;
-    animation: data-stream 8s linear infinite;
-}
-
-/* СЛОЙ 3: ИНТЕРАКТИВНЫЙ ФОНАРИК И ВИНЬЕТКА */
-.hud-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: 
-        /* Основное пятно фонарика */
-        radial-gradient(
-            600px circle at var(--flashlight-x) var(--flashlight-y), 
-            rgba(108, 242, 194, 0.15), 
-            transparent 40%
-        ),
-        /* Вторичное мягкое свечение */
-        radial-gradient(
-            600px circle at var(--cursor-x) var(--cursor-y), 
-            rgba(108, 242, 194, 0.035), 
-            transparent 40%
-        ),
-        /* Глобальная виньетка */
-        radial-gradient(circle at center, transparent 0%, rgba(14, 14, 17, 0.4) 70%, rgba(14, 14, 17, 0.9) 100%);
-}
-
-/* АНИМАЦИИ */
-@keyframes data-stream {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-
-@keyframes bg-hud-pulse {
-    0%, 100% { filter: brightness(1); opacity: 0.8; }
-    50% { filter: brightness(1.4); opacity: 1; }
-}
-
-/* ТЕХНИЧЕСКИЙ ТЕКСТ */
-body::after {
-    content: "COORD: 45.021 // 12.993 \A CORE: STABLE // VER: 2.5.1";
-    white-space: pre;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    font-family: 'Consolas', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    opacity: 0.3;
-    letter-spacing: 2px;
-    z-index: 1000;
-}
-
-@media (max-width: 1024px) {
-    body::before {
-        --grid-size: 30px;
-        background-size: 150px 150px, 150px 150px, 150px 150px, 30px 30px, 30px 30px;
+    body.hud-hidden::after {
+        opacity: 0;
+        transition: opacity 0.5s ease;
     }
-    .data-flow-layer, .hud-overlay, body::after { display: none; }
-}
-/*  2. UI UTILS (Scrollbar & Stability) */
 
-.scroll-progress {
+    body.hud-hidden .audio-widget {
+        opacity: 0;
+        pointer-events: none; 
+        transform: translateX(-100px); 
+        transition: all 0.5s ease;
+    }
+
+    body.hud-hidden #mobile-lang-toggle {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+
+    /* 2: ADVANCED TACTICAL CURSOR */
+
+    body { cursor: none; }
+
+    #cursor {
     position: fixed;
-    top: 0;
-    left: 0;
-    height: 3px;
-    width: 0%;
-    background: var(--accent);
-    z-index: 1000;
-    transition: width 0.1s linear;
-    box-shadow: 0 0 10px var(--accent);
-}
-
-/* Custom Scrollbar */
-
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--accent) 50%, transparent);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-
-/* Hacker Text - Базовая стабилизация */
-
-.hacker-text {
-    font-family: 'Consolas', 'Monaco', monospace;
-    display: inline-block;
-    position: relative;
-    white-space: pre-wrap; 
-    transition: color var(--transition-fast);
-}
-
-/* Контейнеры для изоляции текста*/
-
-.btn-text-wrapper, .stat-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    min-width: 100px; 
-}
-
-/*   3. HERO SECTION: CYBER COMMAND CENTER */
-
-.hero {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 120px 20px 60px;
-    background-color: var(--bg);
-    overflow: hidden;
-    text-align: center;
-    z-index: 1;
-}
-
-/* Background Effects */
-
-.hero-bg-grid {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-image: 
-        linear-gradient(rgba(108, 242, 194, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108, 242, 194, 0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-    background-position: center center;
-    perspective: 1000px;
-    transform-style: preserve-3d;
-    opacity: 0.6; z-index: -2;
-    animation: grid-move 20s linear infinite;
-}
-
-@keyframes grid-move { 
-    0% { background-position: 0 0; } 
-    100% { background-position: 60px 60px; } 
-}
-
-.hero-scanlines {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, 
-        rgba(255,255,255,0), 
-        rgba(255,255,255,0) 50%, 
-        rgba(0,0,0,0.1) 50%, 
-        rgba(0,0,0,0.1)
-    );
-    background-size: 100% 4px; 
-    pointer-events: none; 
-    z-index: -1; 
-    opacity: 0.5;
-}
-
-.hero::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle at center, transparent 0%, var(--bg) 90%);
-    pointer-events: none; z-index: -1;
-}
-
-/* Tech Visual Frame (Avatar) */
-
-.hero-visual {
-    position: relative; 
-    width: 280px; 
-    height: 280px; 
-    margin: 0 auto 40px; 
-    z-index: 10;
-}
-
-.visual-inner {
+    top: 0; left: 0;
     width: 100%; height: 100%;
-    clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
-    background: #1a1a20; position: relative; overflow: hidden;
-}
-
-.hero-img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.hero-visual:hover .hero-img {
-    transform: scale(1.05);
-}
-
-.visual-border {
-    position: absolute; inset: -2px;
-    background: linear-gradient(135deg, var(--accent), transparent 40%, var(--accent));
-    clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
-    z-index: -1; opacity: 0.5; animation: pulse-border 3s infinite alternate;
-}
-
-.visual-corner {
-    position: absolute; width: 20px; height: 20px;
-    border: 2px solid var(--accent); filter: drop-shadow(0 0 5px var(--accent));
-}
-.visual-corner.top-left { top: -10px; left: -10px; border-right: none; border-bottom: none; }
-.visual-corner.bottom-right { bottom: -10px; right: -10px; border-left: none; border-top: none; }
-
-/* Typography */
-
-.hero-title {
-    font-size: clamp(2rem, 8vw, 3.5rem); /* Адаптивный размер шрифта */
-    font-weight: 800;
-    text-transform: uppercase; letter-spacing: -1px; margin-bottom: 16px;
-    color: #fff; text-shadow: 0 0 20px rgba(108, 242, 194, 0.2); line-height: 1.1;
-}
-
-.hero-subtitle {
-    font-family: 'Consolas', monospace; color: var(--accent); font-size: 1rem;
-    margin-bottom: 48px; background: rgba(108, 242, 194, 0.05);
-    display: inline-block; padding: 8px 16px; border-radius: 4px;
-    border-left: 2px solid var(--accent);
-}
-
-/* Cyber Buttons */
-
-.hero-actions { 
-    display: flex; 
-    gap: 20px; 
-    justify-content: center; 
-    align-items: center; 
-    flex-wrap: wrap; 
-}
-
-.btn {
-    position: relative; text-decoration: none; border: none; background: transparent;
-    cursor: pointer; outline: none; display: inline-flex;
-    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.btn-cyber-primary, .btn-cyber-secondary {
-    padding: 16px 36px;
-    font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
-    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-    min-width: 240px; /* Стабилизация ширины */
-    justify-content: center;
-    align-items: center;
-}
-
-.btn-cyber-primary {
-    background: var(--accent); color: #000;
-}
-
-.btn-cyber-primary:hover {
-    transform: translateY(-3px); box-shadow: 0 0 30px var(--accent-glow); filter: brightness(1.1);
-}
-
-.btn-cyber-secondary {
-    color: var(--accent);
-    background: rgba(255, 255, 255, 0.03);
-    box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.btn-cyber-secondary:hover {
-    background: rgba(108, 242, 194, 0.1);
-    box-shadow: inset 0 0 0 2px var(--text), 0 0 20px rgba(108, 242, 194, 0.2);
-    color: #fff; text-shadow: 0 0 8px var(--accent);
-}
-
-/* Scroll Indicator */
-
-.scroll-indicator {
-    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.7;
-}
-
-.mouse {
-    width: 26px; height: 40px; border: 2px solid var(--muted); border-radius: 20px; position: relative;
-}
-
-.wheel {
-    width: 4px; height: 4px; background: var(--accent); border-radius: 50%;
-    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-    animation: scroll-wheel 1.5s infinite;
-}
-
-.arrow-scroll span {
-    display: block; width: 10px; height: 10px;
-    border-bottom: 2px solid var(--muted); border-right: 2px solid var(--muted);
-    transform: rotate(45deg); margin: -4px; animation: scroll-arrow 2s infinite;
-}
-.arrow-scroll span:nth-child(2) { animation-delay: -0.2s; }
-.arrow-scroll span:nth-child(3) { animation-delay: -0.4s; }
-
-/* Animations */
-
-@keyframes pulse-border { 0% { opacity: 0.3; } 100% { opacity: 0.8; box-shadow: 0 0 15px var(--accent); } }
-@keyframes scroll-wheel { 0% { top: 8px; opacity: 1; } 100% { top: 24px; opacity: 0; } }
-@keyframes scroll-arrow { 0% { opacity: 0; transform: rotate(45deg) translate(-5px, -5px); } 50% { opacity: 1; } 100% { opacity: 0; transform: rotate(45deg) translate(5px, 5px); } }
-
-/* Mobile Centering Fix */
-
-@media (max-width: 900px) {
-    .hero-actions {
-        flex-direction: column;
-        width: 100%;
-        max-width: 300px;
-        margin: 0 auto;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: exclusion;
     }
-    .btn-cyber-primary, .btn-cyber-secondary {
-        width: 100%;
-        margin: 0 !important;
+
+    /* ЦЕНТРАЛЬНЫЙ ЭЛЕМЕНТ */
+   
+    .cursor-center {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: var(--accent);
+    transform: translate(-50%, -50%) rotate(45deg); 
+    left: -100px; top: -100px;
+    box-shadow: 0 0 10px var(--accent);
+    transition: transform 0.2s, background 0.2s;
+    z-index: 2;
     }
-}
-/* 3 GENERAL SECTIONS */
 
-.section {
-  padding: 80px 20px; max-width: 1100px; margin: 0 auto;
-  opacity: 0; transform: translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.section.visible { opacity: 1; transform: translateY(0); }
-.section h2 { text-align: center; font-size: 2.2rem; margin-bottom: 40px; }
-
-/* ABOUT SECTION: CHARACTER SHEET (STATIC TECH HUD) */
-
-.about-card {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
-  background: rgba(22, 22, 28, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 30px;
-  border-radius: 12px;
-  position: relative;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-}
-
-.about-visual { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-
-.profile-frame {
-  width: 100%; height: 280px; position: relative; overflow: hidden;
-  border: 1px solid rgba(108, 242, 194, 0.3); 
-  background: #000;
-  clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
-}
-
-/* ФОНОВЫЙ БИНАРНЫЙ КОД - СТАТИЧНЫЙ */
-.profile-frame::before {
-  content: "1010110100110101110101100001101110101101001101011101011000011011";
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  font-family: 'Consolas', monospace;
-  font-size: 10px;
-  color: rgba(108, 242, 194, 0.1);
-  word-break: break-all;
-  z-index: 0;
-  padding: 10px;
-  pointer-events: none;
-}
-
-/* ТОЧЕЧНАЯ СЕТКА HUD - ПОВЕРХ ВСЕГО */
-.profile-frame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(var(--accent) 1px, transparent 1px);
-  background-size: 14px 14px;
-  opacity: 0.15;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.profile-img {
-  width: 100%; height: 100%; object-fit: cover; 
-  opacity: 0.9;
-  /* Легкая цветокоррекция под стиль HUD */
-  filter: grayscale(30%) contrast(1.1);
-  transition: opacity 0.3s ease;
-  position: relative;
-  z-index: 1;
-}
-
-/* УБРАНЫ ВСЕ ГЛЮКИ - ОСТАВЛЕНО ТОЛЬКО ЛЕГКОЕ ПОВЫШЕНИЕ ЯРКОСТИ */
-.profile-frame:hover .profile-img {
-  opacity: 1;
-  filter: grayscale(0%) contrast(1.2);
-}
-
-.scan-line {
-  position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-  background: rgba(108, 242, 194, 0.5); 
-  box-shadow: 0 0 15px var(--accent);
-  opacity: 0.8; z-index: 5;
-  animation: scan-vertical 4s linear infinite;
-}
-
-@keyframes scan-vertical { 
-  0% { top: 0%; opacity: 0; } 
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { top: 100%; opacity: 0; } 
-}
-
-.corner-decor { position: absolute; width: 15px; height: 15px; border: 2px solid var(--accent); z-index: 6; }
-.corner-decor.top-left { top: 5px; left: 5px; border-right: none; border-bottom: none; }
-.corner-decor.bottom-right { bottom: 5px; right: 5px; border-left: none; border-top: none; }
-
-.status-indicator {
-  display: flex; align-items: center; gap: 8px; font-family: 'Consolas', monospace; font-size: 0.75rem;
-  color: var(--accent); background: rgba(108, 242, 194, 0.05); padding: 4px 12px; border-radius: 4px;
-}
-.status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 5px var(--accent); }
-
-.role-title { font-family: 'Consolas', monospace; font-size: 1.2rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
-.role-title .bracket { color: var(--accent); }
-
-.bio-text {
-  font-size: 1rem; color: var(--muted); line-height: 1.7; margin-bottom: 25px;
-  border-left: 2px solid rgba(255, 255, 255, 0.1); padding-left: 15px;
-}
-
-.bio-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-
-.bio-stat {
-  display: flex; flex-direction: column; gap: 4px; background: rgba(255, 255, 255, 0.02);
-  padding: 10px; border-radius: 4px; border-left: 2px solid transparent; transition: border-color 0.3s ease;
-}
-.bio-stat:hover { border-left-color: var(--accent); background: rgba(255, 255, 255, 0.04); }
-
-.stat-label { font-family: 'Consolas', monospace; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
-.stat-data { font-weight: 700; color: #fff; font-size: 0.95rem; }
-
-.btn-cyber-small {
-  display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
-  background: transparent; border: 1px solid var(--accent); color: var(--accent);
-  text-decoration: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;
-  letter-spacing: 1px; transition: all 0.3s ease;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-.btn-cyber-small:hover { background: var(--accent); color: #0e0e11; box-shadow: 0 0 15px var(--accent-glow); }
-
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 25px;
-}
-
-.tech-stat {
-  display: flex;
-  gap: 15px;
-  background: rgba(22, 22, 28, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 20px;
-  border-radius: 6px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(5px);
-}
-
-.tech-stat:hover {
-  transform: translateY(-5px);
-  background: rgba(22, 22, 28, 0.9);
-  border-color: var(--accent);
-  box-shadow: 0 5px 20px rgba(108, 242, 194, 0.15);
-}
-
-.tech-stat::before, .tech-stat::after {
-  content: ''; position: absolute; width: 8px; height: 8px;
-  border: 2px solid transparent; transition: all 0.3s ease;
-}
-.tech-stat::before { top: 0; left: 0; border-top-color: var(--muted); border-left-color: var(--muted); }
-.tech-stat::after { bottom: 0; right: 0; border-bottom-color: var(--muted); border-right-color: var(--muted); }
-
-.tech-stat:hover::before, .tech-stat:hover::after {
-  border-color: var(--accent); width: 100%; height: 100%; opacity: 0.1;
-}
-
-.stat-icon { display: flex; align-items: flex-start; padding-top: 2px; }
-.stat-icon i { font-size: 1.8rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
-
-.stat-content { flex-grow: 1; }
-
-.stat-header {
-  display: flex; justify-content: space-between; margin-bottom: 8px;
-  font-family: 'Consolas', monospace; font-weight: 700; color: #fff; font-size: 0.95rem;
-}
-.stat-value { color: var(--accent); }
-
-.stat-track {
-  width: 100%; height: 8px;
-  background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px; position: relative; overflow: hidden; border-radius: 2px;
-}
-
-.stat-bar {
-  height: 100%; width: 0;
-  background: linear-gradient(90deg, var(--accent) 0%, #fff 50%, var(--accent) 100%);
-  background-size: 200% 100%;
-  box-shadow: 0 0 15px var(--accent-glow);
-  position: relative;
-  transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-  animation: bar-flow 2s linear infinite;
-}
-@keyframes bar-flow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
-
-.section.visible .stat-bar { width: var(--w); }
-.stat-meta { font-size: 0.75rem; color: var(--muted); line-height: 1.4; opacity: 0.8; }
-
-/* 5. PROJECTS: SLIDER HUD STYLE (FINAL STABILITY) */
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.slider-nav {
-  display: flex;
-  gap: 12px;
-}
-
-/* Кнопки навигации */
-.nav-btn {
-  background: rgba(22, 22, 28, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--accent);
-  width: 44px;
-  height: 44px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  backdrop-filter: blur(4px);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-btn i {
-  font-size: 1.5rem;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-
-.nav-btn:hover {
-  background: var(--accent);
-  color: #0e0e11;
-  border-color: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
-  transform: translateY(-2px);
-}
-
-.nav-btn:hover i { transform: scale(1.2); }
-.nav-btn:active { transform: scale(0.95); }
-
-/* Контейнер слайдера */
-.projects-container {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  /* ОБНОВЛЕНО: Маска градиентом с двух сторон (слева и справа) */
-  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-}
-
-/* Дорожка (Скролл) */
-.projects-track {
-  display: flex;
-  gap: 30px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding-bottom: 40px; 
-  padding-right: 40px;
-  padding-left: 20px; /* Добавлено, чтобы компенсировать маску слева */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.projects-track::-webkit-scrollbar { display: none; }
-
-/* --- КАРТОЧКА ПРОЕКТА --- */
-.project-card {
-  min-width: 340px; 
-  max-width: 340px;
-  background: var(--bg-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  align-items: flex-start; /* Выравнивание влево */
-  text-align: left;
-}
-
-.project-card:hover {
-  transform: translateY(-10px);
-  border-color: var(--accent);
-  box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.6);
-  z-index: 2;
-}
-
-/* --- ОБЕРТКА ИЗОБРАЖЕНИЯ --- */
-.card-image-wrapper {
-  width: 100%;
-  height: 200px;
-  position: relative;
-  overflow: hidden; /* Обрезает зум картинки */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background-color: #000;
-}
-
-/* --- ИЗОБРАЖЕНИЕ (НОВОЕ) --- */
-.project-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Заполняет блок, не сплющивая картинку */
-  object-position: center;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
-  opacity: 0.8; /* Немного затемняем для стиля */
-}
-
-/* Эффект зума при наведении на карточку */
-.project-card:hover .project-img {
-  transform: scale(1.1);
-  opacity: 1;
-}
-
-/* --- ПРИЦЕЛ (TARGET RETICLE) --- */
-.target-reticle {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%); /* Центрирование */
-  width: 40px; height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  z-index: 3;
-  opacity: 0; /* Скрыт по умолчанию */
-  transition: all 0.4s ease;
-  pointer-events: none;
-}
-
-.target-reticle::before, .target-reticle::after {
-  content: ''; position: absolute; background: var(--accent);
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-  opacity: 0.8;
-}
-.target-reticle::before { width: 100%; height: 1px; }
-.target-reticle::after { width: 1px; height: 100%; }
-
-/* Анимация прицела при наведении */
-.project-card:hover .target-reticle {
-  opacity: 1;
-  transform: translate(-50%, -50%) rotate(90deg) scale(1.2);
-  border-color: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
-}
-
-/* Оверлей (тень снизу картинки) */
-.card-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(14, 14, 17, 0.95), transparent);
-  opacity: 0.4; 
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* --- КОНТЕНТ КАРТОЧКИ --- */
-.card-content {
-  padding: 25px;
-  display: flex; 
-  flex-direction: column; 
-  flex-grow: 1;
-  width: 100%;
-  align-items: flex-start; 
-}
-
-.card-tags {
-  display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;
-}
-
-.card-tags span {
-  font-size: 0.65rem; font-weight: 700;
-  background: rgba(108, 242, 194, 0.05);
-  border: 1px solid rgba(108, 242, 194, 0.2);
-  padding: 5px 12px;
-  border-radius: 4px;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Заголовок */
-.project-card h3 {
-  margin-bottom: 12px; 
-  font-size: 1.3rem; 
-  color: #fff;
-  transition: color 0.3s ease;
-  min-height: 2.4em; /* Чуть уменьшил, чтобы не было слишком пусто */
-  line-height: 1.2;
-  display: block; 
-  width: 100%;
-}
-.project-card:hover h3 { color: var(--accent); }
-
-/* Описание */
-.project-card p {
-  font-size: 0.95rem; 
-  color: var(--muted); 
-  margin-bottom: 25px;
-  line-height: 1.6;
-  min-height: 4.8em; 
-  display: block;
-  width: 100%;
-}
-
-/* Ссылка */
-.card-link {
-  color: #fff; 
-  text-decoration: none; 
-  font-weight: 700;
-  text-transform: uppercase; 
-  font-size: 0.85rem; 
-  letter-spacing: 1px;
-  display: inline-flex; 
-  align-items: center; 
-  gap: 8px;
-  transition: all 0.3s ease;
-  padding-bottom: 2px;
-  border-bottom: 2px solid transparent;
-  margin-top: auto; 
-}
-.card-link:hover {
-  color: var(--accent); gap: 12px; border-bottom-color: var(--accent);
-}
-
-/* Адаптив */
-@media (max-width: 768px) {
-  .project-card { min-width: 280px; max-width: 280px; }
-  .projects-container { 
-    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); 
-  }
-}
-/* 6  FOOTER: GOD TIER (Preserved) */
-
-.footer {
-  --footer-spacing: 80px; position: relative; padding: var(--footer-spacing) 20px 40px;
-  background-color: var(--bg-secondary); margin-top: 100px; overflow: hidden; --mouse-x: 50%; --mouse-y: 50%;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px; background-position: center top;
-  box-shadow: inset 0 20px 30px -20px rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 255, 255, 0.05);
-  -webkit-user-select: none; user-select: none; cursor: default;
-}
-
-.footer::after {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(to bottom, transparent 20%, var(--bg-secondary) 100%);
-  pointer-events: none; z-index: 0; 
-}
-
-/* HUD */
-
-.footer-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; }
-.hud-corner {
-  position: absolute; width: 20px; height: 20px; border-color: rgba(255, 255, 255, 0.15); border-style: solid; transition: all 0.3s ease;
-}
-.top-left { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
-.top-right { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
-.bottom-left { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
-.bottom-right { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
-.footer:hover .hud-corner { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
-
-.hud-text {
-  position: absolute; font-family: 'Consolas', monospace; font-size: 0.65rem; color: rgba(255, 255, 255, 0.2); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
-}
-.bottom-left-text { bottom: 25px; left: 50px; }
-.bottom-right-text { bottom: 25px; right: 50px; text-align: right; }
-.status-ok { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
-.random-numbers { animation: flicker-text 3s infinite; }
-@keyframes flicker-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } 52% { opacity: 0.8; } 54% { opacity: 0.3; } }
-
-.footer-hud::after {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 10px;
-  background: linear-gradient(to bottom, transparent, rgba(108, 242, 194, 0.1), transparent);
-  opacity: 0.3; animation: scanline 6s linear infinite;
-}
-@keyframes scanline { 0% { top: -10%; } 100% { top: 110%; } }
-
-.footer-glow {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
-  background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(108, 242, 194, 0.08), transparent 40%);
-  mix-blend-mode: screen;
-}
-
-.particles span {
-  position: absolute; width: 2px; height: 2px; background: var(--accent); border-radius: 50%;
-  opacity: 0; pointer-events: none; z-index: 1; animation: float-particle 10s infinite linear;
-}
-.particles span:nth-child(1) { left: 10%; top: 80%; animation-duration: 12s; }
-.particles span:nth-child(2) { left: 80%; top: 60%; animation-duration: 18s; animation-delay: -5s; }
-.particles span:nth-child(3) { left: 40%; top: 40%; animation-duration: 25s; animation-delay: -10s; }
-@keyframes float-particle {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
-  20% { opacity: 0.5; }
-  100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
-}
-
-.footer::before {
-  content: ''; position: absolute; top: -4px; left: 40px; right: 40px; height: 48px;
-  background: 
-    linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.2) 55%, transparent 100%),
-    linear-gradient(90deg, var(--accent) 0%, #fff 50%, var(--accent) 100%);
-  background-size: 100% 100%, 200% 100%;
-  --mask-wave: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 48' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 24H540C580 24 600 4 640 4C680 4 700 44 760 44C820 44 840 4 880 4C920 4 940 24 980 24H1440' stroke='black' stroke-width='4' fill='none' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
-  --mask-taper: linear-gradient(to right, transparent 0px, black 15px, black calc(100% - 15px), transparent 100%);
-  -webkit-mask-image: var(--mask-taper), var(--mask-wave); mask-image: var(--mask-taper), var(--mask-wave);
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-  animation: neon-flow 4s linear infinite, wave-pulse 3s infinite ease-in-out;
-  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 8px 12px rgba(0,0,0,0.6)) drop-shadow(0 0 12px var(--accent-glow));
-  z-index: 10; pointer-events: none; 
-}
-
-.footer-content {
-  max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;
-  gap: 20px; perspective: 1000px; position: relative; z-index: 5; 
-}
-
-.footer-left { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-left: -35px; }
-.footer-right { display: flex; align-items: center; gap: 24px; }
-
-/* Status Badge */
-
-.status-badge {
-  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
-  background: rgba(108, 242, 194, 0.05); border: 1px solid rgba(108, 242, 194, 0.2);
-  border-radius: 20px; font-size: 0.75rem; color: var(--accent); font-weight: 600;
-  box-shadow: 0 0 10px rgba(108, 242, 194, 0.05);
-}
-.status-dot {
-  width: 8px; height: 8px; background-color: var(--accent); border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent); animation: pulse-dot 2s infinite;
-}
-@keyframes pulse-dot { 0% { transform: scale(0.95); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px var(--accent); } 100% { transform: scale(0.95); opacity: 0.7; } }
-
-/* Tech Copyright */
-
-.copyright {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.75rem; color: var(--muted);
-  background: rgba(255, 255, 255, 0.02); padding: 8px 14px; border-radius: 6px;
-  border-left: 2px solid rgba(255, 255, 255, 0.1); display: inline-block;
-  backdrop-filter: blur(4px); transition: all 0.3s ease; line-height: 1;
-}
-.copyright:hover {
-  color: var(--accent); background: rgba(108, 242, 194, 0.05); border-left-color: var(--accent);
-  box-shadow: 0 0 15px rgba(108, 242, 194, 0.1); text-shadow: 0 0 5px var(--accent);
-  transform: translateX(2px); cursor: help;
-}
-
-/* Contacts */
-
-.contacts { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: center; }
-.contacts a {
-  display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none;
-  font-size: 0.85rem; font-weight: 600; padding: 8px 12px; border-radius: 10px;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); transform-style: preserve-3d;
-}
-.contacts a:hover {
-  color: var(--accent); background: rgba(255, 255, 255, 0.02);
-  transform: translateY(-5px) rotateX(10deg); text-shadow: 0 0 8px var(--accent);
-}
-.contacts svg, .contacts .steam-img { width: 18px; height: 18px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); transition: transform 0.4s ease; }
-.contacts .steam-img { object-fit: contain; filter: brightness(0) invert(1) contrast(1.1); }
-.contacts a:hover svg, .contacts a:hover .steam-img { transform: translateZ(15px) scale(1.1); filter: brightness(1.2) drop-shadow(0 0 8px var(--accent)); }
-
-/* Back to Top */
-
-.back-to-top {
-  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: rgba(255,255,255,0.03); color: var(--accent);
-  border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; position: relative;
-  overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.2);
-}
-.back-to-top svg { width: 20px; height: 20px; transition: transform 0.3s ease; z-index: 2; }
-.back-to-top::before {
-  content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 100%; background: var(--accent); transition: top 0.3s ease; z-index: 1;
-}
-.back-to-top:hover { box-shadow: 0 0 20px var(--accent-glow); border-color: var(--accent); }
-.back-to-top:hover::before { top: 0; }
-.back-to-top:hover svg { color: #000; transform: translateY(-3px); }
-
-/* 9. AUDIO WIDGET: SLIDING TAB WITH VISIBLE ICON */
-
-.audio-widget {
-    position: fixed;
-    bottom: 50px;
-    left: 0;
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    transform: translateX(calc(-100% + 55px)); 
-    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-/* Зона захвата для стабильности */
-.audio-widget::after {
+    .cursor-ring {
+    position: absolute;
+    width: 50px; height: 50px;
+    border: 1px dashed var(--accent); 
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    left: -100px; top: -100px;
+    opacity: 0.6;
+    
+    /* Анимация вращения */
+   
+    animation: cursor-spin 10s linear infinite;
+    transition: width 0.3s, height 0.3s, border-color 0.3s, opacity 0.3s;
+    }
+
+    /* Перекрестие */
+   
+    .cursor-ring::after, .cursor-ring::before {
     content: '';
     position: absolute;
-    top: -10px; right: -30px; bottom: -10px; left: 0;
-    z-index: -1;
-}
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--accent);
+    opacity: 0.3;
+    }
+    /* Вертикальная */
+    
+    .cursor-ring::before { width: 1px; height: 8px; top: -5px; } 
+    
+    /* Горизонтальная */
+    
+    .cursor-ring::after { width: 8px; height: 1px; left: -5px; }
 
-.audio-widget:hover {
-    transform: translateX(0);
-}
 
-/* Контроль громкости (выезжает вбок) */
-.volume-control {
-    background: rgba(14, 14, 17, 0.95) !important;
-    border: 1px solid var(--accent) !important;
-    padding: 12px !important;
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    opacity: 0;
-    transform: translateX(-20px);
-    pointer-events: none;
-    transition: all 0.4s ease;
-    clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%) !important;
-    margin-left: 10px;
-}
+    /* АНИМАЦИИ */
+    @keyframes cursor-spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
 
-.audio-widget:hover .volume-control {
+    /* СОСТОЯНИЕ HOVER */
+
+    body.hovering .cursor-center {
+    transform: translate(-50%, -50%) rotate(45deg) scale(1.5);
+    background: #fff;
+    box-shadow: 0 0 15px #fff;
+    }
+
+    body.hovering .cursor-ring {
+    width: 30px; height: 30px; 
+    border-style: solid;       
+    border-width: 2px;
+    border-color: #fff;
     opacity: 1;
-    transform: translateX(0);
-    pointer-events: all;
-    transition-delay: 0.1s;
-}
-
-/* 1. СЛАЙДЕР (Контейнер) */
-#volumeSlider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100px;       /* Чуть шире, как на скринах */
-    height: 6px;        /* Оптимальная высота для полосы прогресса */
-    background: transparent;
-    outline: none;
-    cursor: pointer;
-    margin: 0;
-    z-index: 2;
-}
-
-/* 2. ДОРОЖКА (Track) - Стиль прогресс-бара */
-#volumeSlider::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 6px;
-    /* Градиент: Заполненная часть (Accent) + Пустая часть (Полупрозрачный белый) */
-    background: linear-gradient(90deg, 
-        var(--accent) var(--value, 30%), 
-        rgba(255, 255, 255, 0.1) var(--value, 30%)
-    );
-    border-radius: 3px; /* Закругленные края полосы */
-    transition: background 0.1s linear;
-}
-
-/* 3. БЕГУНОК (Thumb) - Круг */
-#volumeSlider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;        /* Размер круга */
-    height: 14px;
-    background: var(--accent); /* Полностью закрашенный круг */
-    border: 2px solid var(--bg-secondary); /* Небольшая обводка под цвет фона для контраста */
-    border-radius: 50%; /* Превращаем квадрат в круг */
-    margin-top: -4px;   /* Центрируем: (14px thumb - 6px track) / 2 = 4px */
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Легкая тень */
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* 4. ЭФФЕКТ ПРИ НАВЕДЕНИИ (Пульсация) */
-#volumeSlider:hover::-webkit-slider-thumb {
-    transform: scale(1.3); /* Увеличивается */
-    cursor: grab;
-    /* Запускаем анимацию пульсации */
-    animation: thumb-pulse 1.5s infinite; 
-}
-
-#volumeSlider:active::-webkit-slider-thumb {
-    cursor: grabbing;
-    transform: scale(1.1);
-}
-
-/* АНИМАЦИЯ ПУЛЬСАЦИИ */
-@keyframes thumb-pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(108, 242, 194, 0.7);
+    animation-duration: 2s;   
+    background: rgba(255, 255, 255, 0.05);
     }
-    70% {
-        box-shadow: 0 0 0 8px rgba(108, 242, 194, 0); 
+
+    /* В РЕЖИМЕ ВИДЕО */
+   
+    body.video-mode { cursor: auto !important; }
+    body.video-mode #cursor { display: none !important; }
+
+    /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+   
+    @media (max-width: 1024px) {
+    body { cursor: auto; }
+    #cursor { display: none; }
     }
-    100% {
-        box-shadow: 0 0 0 0 rgba(108, 242, 194, 0);
+    :root {
+        
+        /* Основная палитра */
+       
+        --bg: #0e0e11;
+        --bg-secondary: #16161c;
+        --text: #ffffff;
+        --muted: #b3b3b3;
+        --accent: #6cf2c2;
+        --accent-glow: rgba(108, 242, 194, 0.4);
+        --placeholder: #2a2a35;
+        
+        /* Тайминги */
+        
+        --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-base: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
+        /* Параметры сетки */
+        
+        --grid-color: rgba(108, 242, 194, 0.04);
+        --grid-major-color: rgba(108, 242, 194, 0.08);
+        --grid-size: 40px;
+
+        /* Координаты фонарика */
+        
+        --cursor-x: 50%;
+        --cursor-y: 50%;
+        --flashlight-x: 50%;
+        --flashlight-y: 50%;
     }
-}
 
-/* 5. ЦИФРОВОЙ ИНДИКАТОР */
-#volumeDisplay {
-    font-family: 'Consolas', monospace;
-    font-size: 10px;
-    color: var(--accent);
-    margin-left: 10px;
-    opacity: 0.8;
-    width: 25px;
-    text-align: right;
-    font-weight: bold;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
 
-/* Поддержка Firefox */
-#volumeSlider::-moz-range-track {
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-#volumeSlider::-moz-range-progress {
-    background: var(--accent);
-    height: 6px;
-    border-radius: 3px;
-}
-#volumeSlider::-moz-range-thumb {
-    width: 14px; height: 14px;
-    background: var(--accent);
-    border: 2px solid var(--bg-secondary);
-    border-radius: 50%;
-    margin-top: -4px;
-}
+    input, textarea { 
+        user-select: text; 
+        -webkit-user-select: text;
+    }
 
-/* Кнопка-закладка: ДИЗАЙН С ЦИФРОВОЙ КРОМКОЙ */
-button.cyber-audio-btn {
-    background: rgba(14, 14, 17, 0.95) !important;
-    border: 1px solid rgba(108, 242, 194, 0.3) !important;
-    /* Акцентная линия слева как на скринах кнопок */
-    border-left: 4px solid var(--accent) !important; 
-    padding: 0 !important; /* Убираем падинги, используем ширину дочерних элементов */
-    display: flex !important;
-    align-items: center !important;
-    cursor: pointer;
-    transition: all 0.3s ease !important;
-    clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 92% 100%, 0% 100%) !important;
-    height: 48px;
-    overflow: hidden;
-}
+    body {
+        font-family: 'Arial', 'Inter', sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        -webkit-tap-highlight-color: transparent;
+        position: relative;
+        min-height: 100vh;
+    }
 
-/* Фиксированная зона для иконки (всегда видна слева) */
-.audio-icon-box {
-    width: 55px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border-right: 1px solid rgba(108, 242, 194, 0.1);
-}
+    /* СЛОЙ 1: */
+    
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background-image: 
+            radial-gradient(var(--accent) 1px, transparent 1px),
+            linear-gradient(to right, var(--grid-major-color) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-major-color) 1px, transparent 1px),
+            linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+        background-size: 200px 200px, 200px 200px, 200px 200px, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+        background-attachment: fixed;
+        animation: bg-hud-pulse 4s infinite ease-in-out;
+    }
 
-/* Скрытая текстовая часть */
-.audio-info-box {
-    padding: 0 20px 0 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    white-space: nowrap;
-}
+    /* СЛОЙ 2: */
+    
+    .data-flow-layer {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        background-size: 200% 2px;
+        mask-image: linear-gradient(to bottom, 
+            transparent, 
+            black var(--grid-size), 
+            transparent calc(var(--grid-size) + 1px)
+        );
+        mask-size: 100% var(--grid-size);
+        opacity: 0.1;
+        animation: data-stream 8s linear infinite;
+    }
 
-button.cyber-audio-btn.playing {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 20px var(--accent-glow) !important;
-}
+    /* СЛОЙ 3: */
+    
+    .hud-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: 
+           
+        /* Основное пятно фонарика */
+           
+            radial-gradient(
+                600px circle at var(--flashlight-x) var(--flashlight-y), 
+                rgba(108, 242, 194, 0.15), 
+                transparent 40%
+            ),
+           
+            /* Вторичное мягкое свечение */
+           
+            radial-gradient(
+                600px circle at var(--cursor-x) var(--cursor-y), 
+                rgba(108, 242, 194, 0.035), 
+                transparent 40%
+            ),
+           
+            /* Глобальная виньетка */
+           
+            radial-gradient(circle at center, transparent 0%, rgba(14, 14, 17, 0.4) 70%, rgba(14, 14, 17, 0.9) 100%);
+    }
 
-.audio-text {
-    font-family: 'Consolas', monospace;
-    font-size: 0.75rem !important;
-    letter-spacing: 1px;
-    color: var(--muted);
-}
+    /* АНИМАЦИИ */
+   
+    @keyframes data-stream {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
 
-button.cyber-audio-btn.playing .audio-text { color: var(--accent) !important; }
-button.cyber-audio-btn.playing i { color: var(--accent); }
+    @keyframes bg-hud-pulse {
+        0%, 100% { filter: brightness(1); opacity: 0.8; }
+        50% { filter: brightness(1.4); opacity: 1; }
+    }
 
-/* Эквалайзер */
-.equalizer { display: flex; gap: 3px; height: 14px; align-items: flex-end; }
-.bar { width: 3px; height: 3px; background-color: var(--muted); }
-button.cyber-audio-btn.playing .bar {
-    background-color: var(--accent);
-    animation: equalize 0.8s infinite ease-in-out;
-}
+    /* ТЕХНИЧЕСКИЙ ТЕКСТ */
+    
+    body::after {
+        content: "COORD: 45.021 // 12.993 \A CORE: STABLE // VER: 2.5.1";
+        white-space: pre;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        font-family: 'Consolas', monospace;
+        font-size: 10px;
+        color: var(--accent);
+        opacity: 0.3;
+        letter-spacing: 2px;
+        z-index: 1000;
+    }
 
-@keyframes equalize { 0%, 100% { height: 3px; } 50% { height: 14px; } }
+    @media (max-width: 1024px) {
+        body::before {
+            --grid-size: 30px;
+            background-size: 150px 150px, 150px 150px, 150px 150px, 30px 30px, 30px 30px;
+        }
+        .data-flow-layer, .hud-overlay, body::after { display: none; }
+    }
+    /*  2. UI UTILS  */
 
-/* МОБИЛЬНАЯ ВЕРСИЯ: HEX-WIDGET + RADIAL BURST */
-@media (max-width: 1024px) {
-    .audio-widget {
-        left: 30px !important;
-        bottom: 60px !important; 
-        transform: none !important;
-        width: 80px; height: 80px;
+    .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        width: 0%;
+        background: var(--accent);
+        z-index: 1000;
+        transition: width 0.1s linear;
+        box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Custom Scrollbar */
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--accent) 50%, transparent);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* Hacker Text */
+
+    .hacker-text {
+        font-family: 'Consolas', 'Monaco', monospace;
+        display: inline-block;
+        position: relative;
+        white-space: pre-wrap; 
+        transition: color var(--transition-fast);
+    }
+
+    /* Контейнеры для изоляции текста */
+
+    .btn-text-wrapper, .stat-header {
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: visible;
-    }
-    
-    .audio-widget::after { display: none; }
-
-    button.cyber-audio-btn {
-        width: 55px !important; 
-        height: 55px !important;
-        background: rgba(14, 14, 17, 0.98) !important;
-        border: 1px solid var(--accent) !important;
         position: relative;
+        min-width: 100px; 
+    }
+
+    /* 3. HERO SECTION: */
+
+    .hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 120px 20px 60px;
+        background-color: var(--bg);
+        overflow: hidden;
+        text-align: center;
+        z-index: 1;
+    }
+
+    /* Background Effects */
+
+    .hero-bg-grid {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            linear-gradient(rgba(108, 242, 194, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(108, 242, 194, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        background-position: center center;
+        perspective: 1000px;
+        transform-style: preserve-3d;
+        opacity: 0.6; z-index: -2;
+        animation: grid-move 20s linear infinite;
+    }
+
+    @keyframes grid-move { 
+        0% { background-position: 0 0; } 
+        100% { background-position: 60px 60px; } 
+    }
+
+    .hero-scanlines {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(to bottom, 
+            rgba(255,255,255,0), 
+            rgba(255,255,255,0) 50%, 
+            rgba(0,0,0,0.1) 50%, 
+            rgba(0,0,0,0.1)
+        );
+        background-size: 100% 4px; 
+        pointer-events: none; 
+        z-index: -1; 
+        opacity: 0.5;
+    }
+
+    .hero::after {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: radial-gradient(circle at center, transparent 0%, var(--bg) 90%);
+        pointer-events: none; z-index: -1;
+    }
+
+    /* Tech Visual Frame */
+
+    .hero-visual {
+        position: relative; 
+        width: 280px; 
+        height: 280px; 
+        margin: 0 auto 40px; 
         z-index: 10;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        /* Форма гексагона */
-        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
-        transition: all 0.3s ease !important;
     }
 
-    /* РАДИАЛЬНЫЙ ЭКВАЛАЙЗЕР (ВСПЛЕСКИ СНАРУЖИ) */
-    .audio-info-box {
-        position: absolute;
-        inset: 0;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        pointer-events: none;
-    }
-
-    .equalizer.horizontal {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .equalizer.horizontal .bar {
-        position: absolute;
-        width: 2px;
-        height: 12px;
-        background: var(--accent);
-        opacity: 0;
-        transition: 0.3s;
-        box-shadow: 0 0 10px var(--accent);
-        border-radius: 2px;
-        transform-origin: center;
-    }
-
-    /* Расстановка 8 лучей по кругу (каждые 45 градусов) */
-    .equalizer.horizontal .bar:nth-child(1) { transform: rotate(0deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(2) { transform: rotate(45deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(3) { transform: rotate(90deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(4) { transform: rotate(135deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(5) { transform: rotate(180deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(6) { transform: rotate(225deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(7) { transform: rotate(270deg) translateY(-38px); }
-    .equalizer.horizontal .bar:nth-child(8) { transform: rotate(315deg) translateY(-38px); }
-
-    /* АНИМАЦИЯ ПРИ ИГРЕ */
-    button.cyber-audio-btn.playing + .audio-info-box .bar {
-        opacity: 0.7;
-        animation: cyber-burst-mobile 0.6s infinite ease-in-out;
-    }
-
-    /* Хаотичность пульсации */
-    .bar:nth-child(odd) { animation-delay: 0.1s; animation-duration: 0.5s; }
-    .bar:nth-child(even) { animation-delay: 0.3s; animation-duration: 0.7s; }
-
-    @keyframes cyber-burst-mobile {
-        0%, 100% { height: 10px; opacity: 0.4; filter: brightness(1); }
-        50% { height: 24px; opacity: 1; filter: brightness(1.8); }
-    }
-
-    /* Иконка в центре */
-    .audio-icon-box {
+    .visual-inner {
         width: 100%; height: 100%;
-        display: flex !important;
-        align-items: center;
+        clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
+        background: #1a1a20; position: relative; overflow: hidden;
+    }
+
+    .hero-img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .hero-visual:hover .hero-img {
+        transform: scale(1.05);
+    }
+
+    .visual-border {
+        position: absolute; inset: -2px;
+        background: linear-gradient(135deg, var(--accent), transparent 40%, var(--accent));
+        clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
+        z-index: -1; opacity: 0.5; animation: pulse-border 3s infinite alternate;
+    }
+
+    .visual-corner {
+        position: absolute; width: 20px; height: 20px;
+        border: 2px solid var(--accent); filter: drop-shadow(0 0 5px var(--accent));
+    }
+    .visual-corner.top-left { top: -10px; left: -10px; border-right: none; border-bottom: none; }
+    .visual-corner.bottom-right { bottom: -10px; right: -10px; border-left: none; border-top: none; }
+
+    /* Typography */
+
+    .hero-title {
+        font-size: clamp(2rem, 8vw, 3.5rem); 
+        font-weight: 800;
+        text-transform: uppercase; letter-spacing: -1px; margin-bottom: 16px;
+        color: #fff; text-shadow: 0 0 20px rgba(108, 242, 194, 0.2); line-height: 1.1;
+    }
+
+    .hero-subtitle {
+        font-family: 'Consolas', monospace; color: var(--accent); font-size: 1rem;
+        margin-bottom: 48px; background: rgba(108, 242, 194, 0.05);
+        display: inline-block; padding: 8px 16px; border-radius: 4px;
+        border-left: 2px solid var(--accent);
+    }
+
+    /* Cyber Buttons */
+
+    .hero-actions { 
+        display: flex; 
+        gap: 20px; 
+        justify-content: center; 
+        align-items: center; 
+        flex-wrap: wrap; 
+    }
+
+    .btn {
+        position: relative; text-decoration: none; border: none; background: transparent;
+        cursor: pointer; outline: none; display: inline-flex;
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .btn-cyber-primary, .btn-cyber-secondary {
+        padding: 16px 36px;
+        font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;
+        clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        min-width: 240px;               
         justify-content: center;
-        border: none !important;
+        align-items: center;
     }
-    
-    .audio-icon-box i {
-        font-size: 1.3rem !important;
+
+    .btn-cyber-primary {
+        background: var(--accent); color: #000;
+    }
+
+    .btn-cyber-primary:hover {
+        transform: translateY(-3px); box-shadow: 0 0 30px var(--accent-glow); filter: brightness(1.1);
+    }
+
+    .btn-cyber-secondary {
         color: var(--accent);
-        opacity: 0.6;
-        display: block !important;
+        background: rgba(255, 255, 255, 0.03);
+        box-shadow: inset 0 0 0 2px var(--accent);
     }
 
-    button.cyber-audio-btn.playing .audio-icon-box i {
-        opacity: 1;
-        animation: pulse-icon-mobile 1.2s infinite ease-in-out;
+    .btn-cyber-secondary:hover {
+        background: rgba(108, 242, 194, 0.1);
+        box-shadow: inset 0 0 0 2px var(--text), 0 0 20px rgba(108, 242, 194, 0.2);
+        color: #fff; text-shadow: 0 0 8px var(--accent);
     }
 
-    @keyframes pulse-icon-mobile {
-        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--accent)); }
-        50% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--accent)); }
+    /* Scroll Indicator */
+
+    .scroll-indicator {
+        position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+        display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.7;
     }
 
-    /* Прячем текст и громкость */
-    .audio-text, .volume-control { display: none !important; }
-}
+    .mouse {
+        width: 26px; height: 40px; border: 2px solid var(--muted); border-radius: 20px; position: relative;
+    }
 
-/* 10. VIDEO MODAL (HUD STYLE) & RIPPLES */
+    .wheel {
+        width: 4px; height: 4px; background: var(--accent); border-radius: 50%;
+        position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+        animation: scroll-wheel 1.5s infinite;
+    }
 
-.video-modal {
-    position: fixed;
-    inset: 0;
-    display: flex; /* Flex всегда, но скрываем через opacity/visibility */
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
+    .arrow-scroll span {
+        display: block; width: 10px; height: 10px;
+        border-bottom: 2px solid var(--muted); border-right: 2px solid var(--muted);
+        transform: rotate(45deg); margin: -4px; animation: scroll-arrow 2s infinite;
+    }
+    .arrow-scroll span:nth-child(2) { animation-delay: -0.2s; }
+    .arrow-scroll span:nth-child(3) { animation-delay: -0.4s; }
 
-.video-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
+    /* Animations */
 
-/* Фон с размытием и сеткой */
-.video-overlay {
+    @keyframes pulse-border { 0% { opacity: 0.3; } 100% { opacity: 0.8; box-shadow: 0 0 15px var(--accent); } }
+    @keyframes scroll-wheel { 0% { top: 8px; opacity: 1; } 100% { top: 24px; opacity: 0; } }
+    @keyframes scroll-arrow { 0% { opacity: 0; transform: rotate(45deg) translate(-5px, -5px); } 50% { opacity: 1; } 100% { opacity: 0; transform: rotate(45deg) translate(5px, 5px); } }
+
+    /* Mobile Centering Fix */
+
+    @media (max-width: 900px) {
+        .hero-actions {
+            flex-direction: column;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        .btn-cyber-primary, .btn-cyber-secondary {
+            width: 100%;
+            margin: 0 !important;
+        }
+    }
+    /* GENERAL SECTIONS */
+
+    .section {
+    padding: 80px 20px; max-width: 1100px; margin: 0 auto;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .section.visible { opacity: 1; transform: translateY(0); }
+    .section h2 { text-align: center; font-size: 2.2rem; margin-bottom: 40px; }
+
+    /* ABOUT SECTION: CHARACTER SHEET */
+
+    .about-card {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    background: rgba(22, 22, 28, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border-radius: 12px;
+    position: relative;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+    }
+
+    .about-visual { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+    .profile-frame {
+    width: 100%; height: 280px; position: relative; overflow: hidden;
+    border: 1px solid rgba(108, 242, 194, 0.3); 
+    background: #000;
+    clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
+    }
+
+    /* ФОНОВЫЙ БИНАРНЫЙ КОД */
+    
+    .profile-frame::before {
+    content: "1010110100110101110101100001101110101101001101011101011000011011";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    color: rgba(108, 242, 194, 0.1);
+    word-break: break-all;
+    z-index: 0;
+    padding: 10px;
+    pointer-events: none;
+    }
+
+    /* ТОЧЕЧНАЯ СЕТКА HUD */
+   
+    .profile-frame::after {
+    content: "";
     position: absolute;
     inset: 0;
-    background: rgba(14, 14, 17, 0.9);
-    backdrop-filter: blur(8px);
-    /* Легкая сетка на фоне */
-    background-image: 
-        linear-gradient(rgba(108, 242, 194, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108, 242, 194, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-}
+    background-image: radial-gradient(var(--accent) 1px, transparent 1px);
+    background-size: 14px 14px;
+    opacity: 0.15;
+    z-index: 4;
+    pointer-events: none;
+    }
 
-/* Окно контента */
-.video-content {
+    .profile-img {
+    width: 100%; height: 100%; object-fit: cover; 
+    opacity: 0.9;
+    filter: grayscale(30%) contrast(1.1);
+    transition: opacity 0.3s ease;
     position: relative;
-    width: 90%;
-    max-width: 960px;
-    background: #000;
-    border: 1px solid rgba(108, 242, 194, 0.3);
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-    transform: scale(0.95);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1;
+    }
+
+    /* УБРАНЫ ВСЕ ГЛЮКИ - ОСТАВЛЕНО ТОЛЬКО ЛЕГКОЕ ПОВЫШЕНИЕ ЯРКОСТИ */
+   
+    .profile-frame:hover .profile-img {
+    opacity: 1;
+    filter: grayscale(0%) contrast(1.2);
+    }
+
+    .scan-line {
+    position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: rgba(108, 242, 194, 0.5); 
+    box-shadow: 0 0 15px var(--accent);
+    opacity: 0.8; z-index: 5;
+    animation: scan-vertical 4s linear infinite;
+    }
+
+    @keyframes scan-vertical { 
+    0% { top: 0%; opacity: 0; } 
+    5% { opacity: 1; }
+    95% { opacity: 1; }
+    100% { top: 100%; opacity: 0; } 
+    }
+
+    .corner-decor { position: absolute; width: 15px; height: 15px; border: 2px solid var(--accent); z-index: 6; }
+    .corner-decor.top-left { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+    .corner-decor.bottom-right { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+
+    .status-indicator {
+    display: flex; align-items: center; gap: 8px; font-family: 'Consolas', monospace; font-size: 0.75rem;
+    color: var(--accent); background: rgba(108, 242, 194, 0.05); padding: 4px 12px; border-radius: 4px;
+    }
+    .status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 5px var(--accent); }
+
+    .role-title { font-family: 'Consolas', monospace; font-size: 1.2rem; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
+    .role-title .bracket { color: var(--accent); }
+
+    .bio-text {
+    font-size: 1rem; color: var(--muted); line-height: 1.7; margin-bottom: 25px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1); padding-left: 15px;
+    }
+
+    .bio-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+
+    .bio-stat {
+    display: flex; flex-direction: column; gap: 4px; background: rgba(255, 255, 255, 0.02);
+    padding: 10px; border-radius: 4px; border-left: 2px solid transparent; transition: border-color 0.3s ease;
+    }
+    .bio-stat:hover { border-left-color: var(--accent); background: rgba(255, 255, 255, 0.04); }
+
+    .stat-label { font-family: 'Consolas', monospace; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+    .stat-data { font-weight: 700; color: #fff; font-size: 0.95rem; }
+
+    .btn-cyber-small {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    text-decoration: none; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;
+    letter-spacing: 1px; transition: all 0.3s ease;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .btn-cyber-small:hover { background: var(--accent); color: #0e0e11; box-shadow: 0 0 15px var(--accent-glow); }
+
+    .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    }
+
+    .tech-stat {
     display: flex;
-    flex-direction: column;
-}
+    gap: 15px;
+    background: rgba(22, 22, 28, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 20px;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    }
 
-.video-modal.active .video-content {
-    transform: scale(1);
-}
+    .tech-stat:hover {
+    transform: translateY(-5px);
+    background: rgba(22, 22, 28, 0.9);
+    border-color: var(--accent);
+    box-shadow: 0 5px 20px rgba(108, 242, 194, 0.15);
+    }
 
-/* Верхняя панель заголовка */
-.modal-header {
+    .tech-stat::before, .tech-stat::after {
+    content: ''; position: absolute; width: 8px; height: 8px;
+    border: 2px solid transparent; transition: all 0.3s ease;
+    }
+    .tech-stat::before { top: 0; left: 0; border-top-color: var(--muted); border-left-color: var(--muted); }
+    .tech-stat::after { bottom: 0; right: 0; border-bottom-color: var(--muted); border-right-color: var(--muted); }
+
+    .tech-stat:hover::before, .tech-stat:hover::after {
+    border-color: var(--accent); width: 100%; height: 100%; opacity: 0.1;
+    }
+
+    .stat-icon { display: flex; align-items: flex-start; padding-top: 2px; }
+    .stat-icon i { font-size: 1.8rem; color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
+    .stat-content { flex-grow: 1; }
+
+    .stat-header {
+    display: flex; justify-content: space-between; margin-bottom: 8px;
+    font-family: 'Consolas', monospace; font-weight: 700; color: #fff; font-size: 0.95rem;
+    }
+    .stat-value { color: var(--accent); }
+
+    .stat-track {
+    width: 100%; height: 8px;
+    background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 10px; position: relative; overflow: hidden; border-radius: 2px;
+    }
+
+    .stat-bar {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent) 0%, #fff 50%, var(--accent) 100%);
+    background-size: 200% 100%;
+    box-shadow: 0 0 15px var(--accent-glow);
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: bar-flow 2s linear infinite;
+    }
+    @keyframes bar-flow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+    .section.visible .stat-bar { width: var(--w); }
+    .stat-meta { font-size: 0.75rem; color: var(--muted); line-height: 1.4; opacity: 0.8; }
+
+    /* 5. PROJECTS: SLIDER HUD STYLE */
+
+    .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
-    background: rgba(108, 242, 194, 0.05);
-    border-bottom: 1px solid rgba(108, 242, 194, 0.2);
-}
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+    }
 
-.modal-title {
-    font-family: 'Consolas', monospace;
-    font-size: 0.8rem;
+    .slider-nav {
+    display: flex;
+    gap: 12px;
+    }
+
+    /* Кнопки навигации */
+    
+    .nav-btn {
+    background: rgba(22, 22, 28, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--accent);
-    letter-spacing: 1px;
-}
-
-/* Кнопка закрытия */
-.video-close {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
     cursor: pointer;
-    padding: 5px 12px;
-    font-family: 'Consolas', monospace;
-    font-size: 0.8rem;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    backdrop-filter: blur(4px);
+    position: relative;
+    overflow: hidden;
+    }
 
-.video-close:hover {
+    .nav-btn i {
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+    }
+
+    .nav-btn:hover {
     background: var(--accent);
-    color: #000;
+    color: #0e0e11;
     border-color: var(--accent);
     box-shadow: 0 0 15px var(--accent-glow);
-}
+    transform: translateY(-2px);
+    }
 
-/* Адаптивная обертка для видео (16:9) */
-.video-wrapper {
+    .nav-btn:hover i { transform: scale(1.2); }
+    .nav-btn:active { transform: scale(0.95); }
+
+    /* Контейнер слайдера */
+   
+    .projects-container {
+    width: 100%;
+    overflow: hidden;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-    height: 0;
-    background: #000;
-}
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    }
 
-.video-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
+    /* Скролл */
+   
+    .projects-track {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 40px; 
+    padding-right: 40px;
+    padding-left: 20px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    }
+    .projects-track::-webkit-scrollbar { display: none; }
+
+    /* КАРТОЧКА ПРОЕКТА */
+    .project-card {
+    min-width: 340px; 
+    max-width: 340px;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-start;
+    text-align: left;
+
+    /* ВАЖНЫЕ ФИКСЫ ДЛЯ ПРОИЗВОДИТЕЛЬНОСТИ 3D */
+   
+    will-change: transform;       /* Говорит браузеру заранее подготовить слой */
+    transform-style: preserve-3d; /* Улучшает рендеринг 3D */
+    backface-visibility: hidden;  /* Убирает отрисовку задней части */
+    }
+
+    .project-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--accent);
+    
+    /* Чуть уменьшил размытие тени для снижения нагрузки на GPU */
+    
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+    }
+
+    /* ОБЕРТКА ИЗОБРАЖЕНИЯ */
+  
+    .card-image-wrapper {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: #000;
+    }
+
+    /* ИЗОБРАЖЕНИЕ */
+  
+    .project-img {
     width: 100%;
     height: 100%;
-    border: none;
-}
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+    opacity: 0.8;
+    }
 
-/* Декоративные уголки (HUD Corners) */
-.modal-corner {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--accent);
-    pointer-events: none;
-    z-index: 2;
-    transition: all 0.5s ease;
-}
+    .project-card:hover .project-img {
+    transform: scale(1.1);
+    opacity: 1;
+    }
 
-.modal-corner.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-.modal-corner.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
-.modal-corner.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
-.modal-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
-
-.video-modal.active .modal-corner {
-    width: 40px; height: 40px; /* Анимация расширения уголков */
-}
-
-/* CLICK RIPPLE (Эффект клика по футеру) */
-.click-ripple {
-    position: absolute;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    border: 1px solid rgba(108, 242, 194, 0.5);
-    animation: shockwave 0.6s ease-out forwards;
-    z-index: 10;
-}
-
-@keyframes shockwave {
-    0% { width: 0; height: 0; opacity: 1; }
-    100% { width: 300px; height: 300px; opacity: 0; }
-}
-
-/* 11. CUSTOM HUD VIDEO PLAYER (DESKTOP & MOBILE ADAPTIVE) */
-
-.custom-video-player {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-  background: #000;
-  overflow: hidden;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+    /* TARGET RETICLE */
   
-  /* ЭФФЕКТ "ВКЛЮЧЕНИЯ" */
-  opacity: 0;
-  transform: scaleY(0); 
-  transform-origin: center;
-  filter: blur(10px);
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.custom-video-player.initialized {
-  opacity: 1;
-  transform: scaleY(1);
-  filter: blur(0);
-}
-
-.custom-video-player video {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  object-fit: contain;
-}
-
-/* Скан-линии */
-.scanline-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size: 100% 4px, 6px 100%;
-  pointer-events: none;
-  z-index: 5;
-}
-
-/* --- БОЛЬШАЯ КНОПКА PLAY (КРУГЛАЯ) --- */
-.big-play-btn {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80px; height: 80px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  z-index: 20;
-  transition: all 0.3s ease;
-}
-
-.custom-video-player.playing .big-play-btn {
-  opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(1.5);
-}
-
-.play-icon-shape {
-  width: 100%; height: 100%;
-  background: rgba(14, 14, 17, 0.8);
-  border: 2px solid var(--accent);
-  border-radius: 50%; /* КРУГ */
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(5px);
-  box-shadow: 0 0 15px rgba(0,0,0,0.5);
-}
-
-.play-icon-shape i { font-size: 2.5rem; color: var(--accent); margin-left: 5px; }
-
-.big-play-btn:hover .play-icon-shape {
-  background: var(--accent);
-  box-shadow: 0 0 30px var(--accent-glow);
-}
-.big-play-btn:hover i { color: #000; }
-
-/* --- МЕНЮ НАСТРОЕК --- */
-.settings-menu {
-  position: absolute;
-  bottom: 60px; right: 20px;
-  width: 200px;
-  background: rgba(14, 14, 17, 0.95);
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  padding: 15px;
-  z-index: 40;
-  opacity: 0; transform: translateY(10px); pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-  backdrop-filter: blur(10px);
-}
-.settings-menu.active { opacity: 1; transform: translateY(0); pointer-events: all; }
-.setting-group { margin-bottom: 12px; }
-.setting-label { display: block; font-family: 'Consolas', monospace; font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
-.setting-options { display: flex; gap: 5px; flex-wrap: wrap; }
-.setting-options button {
-  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff; font-size: 0.75rem; padding: 4px 8px; cursor: pointer; flex: 1;
-  font-family: 'Consolas', monospace; transition: all 0.2s;
-}
-.setting-options button:hover { border-color: var(--accent); color: var(--accent); }
-.setting-options button.active { background: var(--accent); color: #000; font-weight: bold; }
-#settingsBtn i { transition: transform 0.5s ease; }
-#settingsBtn.active i { transform: rotate(90deg); color: var(--accent); }
-
-/* --- ОБРАТНАЯ СВЯЗЬ (АНИМАЦИЯ ПО ЦЕНТРУ) --- */
-.keyboard-feedback {
+    .target-reticle {
     position: absolute;
     top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0.5);
-    width: 80px; height: 80px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--accent);
+    transform: translate(-50%, -50%);
+    width: 40px; height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent);
-    font-size: 2.5rem;
-    opacity: 0; pointer-events: none; z-index: 50;
-    box-shadow: 0 0 20px var(--accent-glow);
-}
-.keyboard-feedback.animate { animation: feedbackPop 0.6s ease-out forwards; }
-@keyframes feedbackPop {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-}
+    z-index: 3;
+    opacity: 0;
+    transition: all 0.4s ease;
+    pointer-events: none;
+    }
 
-/* --- ПАНЕЛЬ УПРАВЛЕНИЯ --- */
-.player-controls {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
-  padding: 20px 20px 15px;
-  z-index: 30;
-  opacity: 0; transform: translateY(20px);
-  transition: all 0.3s ease;
-  display: flex; flex-direction: column; gap: 5px;
-}
-.custom-video-player:hover .player-controls,
-.custom-video-player.paused .player-controls { opacity: 1; transform: translateY(0); }
+    .target-reticle::before, .target-reticle::after {
+    content: ''; position: absolute; background: var(--accent);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    opacity: 0.8;
+    }
+    .target-reticle::before { width: 100%; height: 1px; }
+    .target-reticle::after { width: 1px; height: 100%; }
 
-/* --- ПРОГРЕСС БАР (КРУГЛЫЙ) --- */
-.progress-container { width: 100%; position: relative; height: 10px; display: flex; align-items: center; }
-#videoProgress {
-  -webkit-appearance: none; width: 100%; height: 4px;
-  background: transparent; outline: none; cursor: pointer; z-index: 2; transition: all 0.2s;
-}
-#videoProgress::-webkit-slider-runnable-track {
-    background: linear-gradient(90deg, var(--accent) var(--seek-position, 0%), rgba(255,255,255,0.1) var(--seek-position, 0%));
-    height: 4px; border-radius: 2px;
-}
-#videoProgress::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 14px; height: 14px;
-  background: var(--accent); border: 2px solid #000; border-radius: 50%;
-  margin-top: -5px; box-shadow: 0 0 10px var(--accent-glow);
-  transform: scale(1); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-#videoProgress:hover::-webkit-slider-thumb { transform: scale(1.4); background: #fff; box-shadow: 0 0 15px var(--accent); }
-
-/* --- КНОПКИ, ГРОМКОСТЬ И ВРЕМЯ --- */
-.controls-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
-
-.left-controls { 
-  display: flex; align-items: center; 
-  gap: 5px; 
-}
-.right-controls { display: flex; align-items: center; gap: 15px; }
-
-.hud-btn {
-  background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;
-  opacity: 0.8; transition: all 0.2s; display: flex; align-items: center;
-}
-.hud-btn:hover { color: var(--accent); opacity: 1; text-shadow: 0 0 10px var(--accent); transform: scale(1.1); }
-
-/* --- ЛЕВАЯ ЧАСТЬ ПАНЕЛИ --- */
-.left-controls { 
-  display: flex; 
-  align-items: center; 
-  /* Уменьшаем расстояние между ВСЕМИ элементами (Play, Volume, Time) */
-  gap: 5px; 
-}
-
-/* --- ВРЕМЯ --- */
-.time-display {
-  font-family: 'Consolas', monospace; 
-  font-size: 0.85rem; 
-  color: var(--muted);
-  /* УБИРАЕМ margin-left: -100px, так как он перекрывает громкость */
-  margin-left: 5px; 
-  /* Это позволяет кликам проходить сквозь текст, если он вдруг что-то перекроет */
-  pointer-events: none; 
-  white-space: nowrap; /* Чтобы текст не прыгал */
-}
-
-/* --- ГРОМКОСТЬ --- */
-.video-volume-box { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
-  z-index: 10; /* Поднимаем громкость выше остальных элементов */
-  position: relative;
-}
-
-.video-volume-box i { font-size: 1.1rem; color: var(--muted); }
-
-#videoVolume { 
-  -webkit-appearance: none; 
-  width: 70px; 
-  height: 4px; 
-  background: transparent; 
-  outline: none; 
-  cursor: pointer; 
-  /* Важно: ползунок должен быть кликабельным */
-  position: relative; 
-  z-index: 20; 
-}
-
-#videoVolume::-webkit-slider-runnable-track {
-  background: linear-gradient(90deg, var(--accent) var(--vol-position, 70%), rgba(255,255,255,0.1) var(--vol-position, 70%)); 
-  height: 4px;
-}
-
-#videoVolume::-webkit-slider-thumb {
-  -webkit-appearance: none; 
-  width: 10px; 
-  height: 10px; 
-  background: var(--accent); 
-  border-radius: 50%; 
-  margin-top: -3px;
-  box-shadow: 0 0 5px var(--accent); 
-  transition: transform 0.2s;
-  cursor: grab;
-}
-
-#videoVolume:hover::-webkit-slider-thumb { transform: scale(1.3); }
-
-
-/* МОБИЛЬНАЯ АДАПТАЦИЯ (Max Width 768px) */
-
-@media (max-width: 768px) {
-  /* Панель управления */
-  .player-controls {
-    padding: 10px 15px;
-    background: linear-gradient(to top, rgba(0,0,0,1), transparent);
-  }
-
-  /* Скрываем ползунок громкости на мобильных (места мало, есть кнопки телефона) */
-  .video-volume-box {
-    display: none; 
-  }
-
-  /* Увеличиваем кнопки для пальцев */
-  .hud-btn {
-    font-size: 1.4rem;
-    padding: 8px;
-  }
-
-  /* Время сдвигаем обратно, так как громкости нет */
-  .time-display {
-    margin-left: 2px;
-    font-size: 0.75rem;
-  }
-
-  /* Уменьшаем большую кнопку Play, чтобы не перекрывала всё */
-  .big-play-btn {
-    width: 60px; height: 60px;
-  }
-  .play-icon-shape i { font-size: 1.8rem; }
-
-  /* Обратная связь по центру - поменьше */
-  .keyboard-feedback {
-    width: 60px; height: 60px;
-    font-size: 2rem;
-  }
-
-  /* Меню настроек - центрируем и делаем шире */
-  .settings-menu {
-    width: 90%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px); /* Центрирование */
-    bottom: 60px;
-    right: auto;
-  }
-  .settings-menu.active {
-    transform: translateX(-50%) translateY(0);
-  }
-  
-  /* Увеличиваем область нажатия прогресс бара */
-  .progress-container {
-    height: 15px;
-  }
-  #videoProgress::-webkit-slider-thumb {
-    width: 16px; height: 16px; /* Чуть больше для пальца */
-    margin-top: -6px;
-  }
-}
-
-/* 12. MOBILE UI & LANGUAGE TOGGLE */
-
-.mobile-lang-btn {
-    display: none; /* Скрыто на ПК */
-    position: fixed;
-
-    /* ПОДНЯТО: теперь 125px от низа, чтобы не мешать карточкам и аудио */
-
-    bottom: 125px; 
-    right: 25px;
-    z-index: 1100; /* Выше всех HUD элементов */
-    background: var(--bg-secondary);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 50%;
-    width: 50px; 
-    height: 50px;
-    align-items: center; 
-    justify-content: center;
+    .project-card:hover .target-reticle {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(90deg) scale(1.2);
+    border-color: var(--accent);
     box-shadow: 0 0 15px var(--accent-glow);
-    font-family: 'Consolas', monospace;
-    font-weight: bold;
-    text-transform: uppercase;
-
-    /* Анимация привлечения внимания */
-
-    animation: bounce-attention 5s infinite;
-    cursor: pointer;
-    transition: all 0.3s var(--transition-base);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-lang-btn:active {
-    transform: scale(0.9) rotate(5deg);
-    background: var(--accent);
-    color: var(--bg);
-}
-
-@keyframes bounce-attention {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-12px); }
-    60% { transform: translateY(-6px); }
-}
-
-/* ГЛОБАЛЬНАЯ АДАПТАЦИЯ (MOBILE FIX) */
-
-@media (max-width: 1024px) {
-    .mobile-lang-btn { 
-        display: flex; 
     }
 
-    /* Отключаем hover-эффекты текста на мобилках, чтобы не мешали скроллу */
-
-    .hacker-text { 
-        pointer-events: auto; /* Разрешаем клик (тап), но CSS-ховеры не сработают */
-    }
-    
-    /* Центрирование Hero */
-
-    .hero-content-wrapper { 
-        text-align: center; 
-        align-items: center; 
-    }
-    .hero-actions { 
-        flex-direction: column; 
-        width: 100%; 
-        max-width: 320px; 
-        margin: 0 auto; 
-        gap: 15px; 
-    }
-    .btn-cyber-primary, 
-    .btn-cyber-secondary { 
-        width: 100% !important; 
-        margin: 0 !important; 
+    /* Оверлей */
+  
+    .card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(14, 14, 17, 0.95), transparent);
+    opacity: 0.4; 
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
     }
 
-    /* Очистка HUD для мобильных */
-
-    .volume-control, 
-    .hud-corner, 
-    .hud-text,
-    .scroll-indicator { 
-        display: none !important; 
-    }
-
-    /* Кнопка звука */
-
-    .audio-widget { 
-        bottom: 25px; 
-        left: 25px; 
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-title { 
-        font-size: 1.6rem; 
-        padding: 0 10px;
-    }
-    
-    .about-card { 
-        padding: 20px 15px; 
-    }
-    
-    .footer { 
-        padding: 50px 20px 100px; /* Больше отступа снизу из-за кнопок */
-    }
-
-    /* Смещаем кнопку языка чуть правее на мелких экранах */
-   
-    .mobile-lang-btn {
-        right: 15px;
-        bottom: 120px;
-    }
-    .audio-widget {
-        left: 15px;
-        bottom: 25px;
-    }
-}
-
-/* 13 ABOUT SECTION: ADAPTIVE FIX */
-
-@media (max-width: 900px) {
-    .about-card {
-   
-        /* Переключаем сетку в одну колонку */
-   
-        grid-template-columns: 1fr;
-        padding: 20px 15px;
-        gap: 25px;
-   
-        /* Убираем жесткую высоту, если она была */
-   
-        height: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .about-visual {
-        width: 100%;
-        max-width: 280px; /* Ограничиваем ширину рамки фото */
-        margin: 0 auto;
-    }
-
-    .profile-frame {
-        height: 250px; /* Уменьшаем высоту фото для мобилок */
-    }
-
-    .about-content {
-        width: 100%;
-        text-align: center; /* Центрируем текст для лучшего вида на узком экране */
-    }
-
-    .bio-text {
-        border-left: none; /* Убираем боковую линию, она занимает место */
-        padding-left: 0;
-        margin-bottom: 20px;
-        font-size: 0.9rem; /* Чуть уменьшаем шрифт */
-    }
-
-    .bio-stats-grid {
-        grid-template-columns: 1fr; /* Статы в один столбик, чтобы не сжимались */
-        gap: 10px;
-        width: 100%;
-    }
-
-    .bio-stat {
-        padding: 12px;
-        text-align: left; /* Внутри стата текст лучше оставить слева */
-    }
-
-    /* Исправление для "Данные профиля" заголовка */
-   
-    .section h2 {
-        font-size: 1.6rem;
-        margin-bottom: 30px;
-    }
-}
-
-    /* Дополнительный фикс для совсем маленьких экранов (iPhone SE и т.д.) */
-
-    @media (max-width: 400px) {
-        .hero-title {
-            font-size: 1.5rem;
-        }
-        .about-card {
-            padding: 15px 10px;
-        }
-        .stat-data {
-            font-size: 0.85rem;
-        }
-    }
-
-    /* SCROLL INDICATOR: HIDE ON MOBILE */
-
-    @media (max-width: 1024px) {
-        .scroll-indicator {
-            display: none !important;
-        }
-    }
-
-/* 14 PROJECTS: PREMIUM MOBILE EXPERIENCE */
-
-@media (max-width: 768px) {
-    .projects-container {
-        mask-image: none;
-        -webkit-mask-image: none;
-
-        /* Оставляем небольшие отступы, чтобы карточка была в центре */
-
-        padding: 0 30px; 
-        overflow: visible; /* Позволяет видеть тени соседних карточек */
-    }
-
-    .projects-track {
-        gap: 15px;
-        padding-bottom: 30px;
-
-        /* Жесткая привязка: скролл всегда остановится на центре карточки */
-
-        scroll-snap-type: x mandatory;
-        display: flex;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    .project-card {
-
-        /* Идеальный размер: карточка почти на весь экран, но видны края других */
-
-        min-width: calc(100vw - 60px); 
-        max-width: calc(100vw - 60px);
-        scroll-snap-align: center;
-        
-        /* Улучшаем визуальный вес */
-
-        background: rgba(22, 22, 28, 0.95);
-        border: 1px solid rgba(108, 242, 194, 0.2);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Делаем область изображения компактнее на мобилках */
-
-    .card-image-wrapper {
-        height: 160px;
-    }
-
-    /* Увеличиваем кликабельность ссылки */
-
-    .card-link {
-        padding: 12px 0;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid rgba(108, 242, 194, 0.3);
-    }
-
-    .project-card h3 {
-        font-size: 1.4rem;
-        margin-top: 10px;
+    /* КОНТЕНТ КАРТОЧКИ */
+  
+    .card-content {
+    padding: 25px;
+    display: flex; 
+    flex-direction: column; 
+    flex-grow: 1;
+    width: 100%;
+    align-items: flex-start; 
     }
 
     .card-tags {
-        gap: 5px;
+    display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;
     }
 
     .card-tags span {
-        padding: 4px 8px;
-        font-size: 0.6rem;
+    font-size: 0.65rem; font-weight: 700;
+    background: rgba(108, 242, 194, 0.05);
+    border: 1px solid rgba(108, 242, 194, 0.2);
+    padding: 5px 12px;
+    border-radius: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     }
 
-    /* Скрываем кнопки стрелок, они мешают на тач-экранах */
-
-    .slider-nav {
-        display: none;
+    /* Заголовок */
+  
+    .project-card h3 {
+    margin-bottom: 12px; 
+    font-size: 1.3rem; 
+    color: #fff;
+    transition: color 0.3s ease;
+    min-height: 2.4em;
+    line-height: 1.2;
+    display: block; 
+    width: 100%;
     }
-}
+    .project-card:hover h3 { color: var(--accent); }
 
-/* 15 PROJECTS: MOBILE CENTER ALIGNMENT */
-
-@media (max-width: 768px) {
-    .projects-container {
-        padding: 0; /* Убираем лишние отступы здесь */
-        overflow: hidden;
-        width: 100%;
-    }
-
-    .projects-track {
-        display: flex;
-        overflow-x: auto;
-        scroll-behavior: smooth;
-
-        /* Магнитное центрирование */
-
-        scroll-snap-type: x mandatory; 
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        
-        /* Важно: отступы слева и справа должны быть равны, 
-           чтобы первая и последняя карточки тоже могли встать по центру */
-
-           padding: 0 30px 30px; 
-        gap: 15px;
+    /* Описание */
+  
+    .project-card p {
+    font-size: 0.95rem; 
+    color: var(--muted); 
+    margin-bottom: 25px;
+    line-height: 1.6;
+    min-height: 4.8em; 
+    display: block;
+    width: 100%;
     }
 
-    .project-card {
-
-        /* Карточка занимает почти всю ширину, оставляя место для зазоров */
-
-        min-width: calc(100vw - 60px); 
-        max-width: calc(100vw - 60px);
-        
-        /* Привязка центра карточки к центру контейнера */
-
-        scroll-snap-align: center; 
-        
-        flex-shrink: 0; /* Запрещаем сжатие */
-        transition: transform 0.4s ease, opacity 0.4s ease;
+    /* Ссылка */
+  
+    .card-link {
+    color: #fff; 
+    text-decoration: none; 
+    font-weight: 700;
+    text-transform: uppercase; 
+    font-size: 0.85rem; 
+    letter-spacing: 1px;
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px;
+    transition: all 0.3s ease;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+    margin-top: auto; 
+    }
+    .card-link:hover {
+    color: var(--accent); gap: 12px; border-bottom-color: var(--accent);
     }
 
-    /* Скрываем скроллбар для чистоты */
+    /* Адаптив */
+  
+    @media (max-width: 768px) {
+    .project-card { min-width: 280px; max-width: 280px; }
+    .projects-container { 
+        mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); 
+    }
+    }
+    /* 6  FOOTER: (Preserved) */
 
-    .projects-track::-webkit-scrollbar { display: none; }
-}
-
-
-/* 16 FOOTER: MOBILE ADAPTIVE OPTIMIZATION */
-
-@media (max-width: 900px) {
     .footer {
-        padding: 60px 15px 30px; /* Уменьшаем внутренние отступы */
-        margin-top: 60px;
+    --footer-spacing: 80px; position: relative; padding: var(--footer-spacing) 20px 40px;
+    background-color: var(--bg-secondary); margin-top: 100px; overflow: hidden; --mouse-x: 50%; --mouse-y: 50%;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px; background-position: center top;
+    box-shadow: inset 0 20px 30px -20px rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 255, 255, 0.05);
+    -webkit-user-select: none; user-select: none; cursor: default;
+    }
+
+    .footer::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom, transparent 20%, var(--bg-secondary) 100%);
+    pointer-events: none; z-index: 0; 
+    }
+
+    /* HUD */
+
+    .footer-hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: hidden; }
+    .hud-corner {
+    position: absolute; width: 20px; height: 20px; border-color: rgba(255, 255, 255, 0.15); border-style: solid; transition: all 0.3s ease;
+    }
+    .top-left { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+    .top-right { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+    .bottom-left { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+    .bottom-right { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+    .footer:hover .hud-corner { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+
+    .hud-text {
+    position: absolute; font-family: 'Consolas', monospace; font-size: 0.65rem; color: rgba(255, 255, 255, 0.2); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap;
+    }
+    .bottom-left-text { bottom: 25px; left: 50px; }
+    .bottom-right-text { bottom: 25px; right: 50px; text-align: right; }
+    .status-ok { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+    .random-numbers { animation: flicker-text 3s infinite; }
+    @keyframes flicker-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } 52% { opacity: 0.8; } 54% { opacity: 0.3; } }
+
+    .footer-hud::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 10px;
+    background: linear-gradient(to bottom, transparent, rgba(108, 242, 194, 0.1), transparent);
+    opacity: 0.3; animation: scanline 6s linear infinite;
+    }
+    @keyframes scanline { 0% { top: -10%; } 100% { top: 110%; } }
+
+    .footer-glow {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;
+    background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(108, 242, 194, 0.08), transparent 40%);
+    mix-blend-mode: screen;
+    }
+
+    .particles span {
+    position: absolute; width: 2px; height: 2px; background: var(--accent); border-radius: 50%;
+    opacity: 0; pointer-events: none; z-index: 1; animation: float-particle 10s infinite linear;
+    }
+    .particles span:nth-child(1) { left: 10%; top: 80%; animation-duration: 12s; }
+    .particles span:nth-child(2) { left: 80%; top: 60%; animation-duration: 18s; animation-delay: -5s; }
+    .particles span:nth-child(3) { left: 40%; top: 40%; animation-duration: 25s; animation-delay: -10s; }
+    @keyframes float-particle {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    20% { opacity: 0.5; }
+    100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+    }
+
+    .footer::before {
+    content: ''; position: absolute; top: -4px; left: 40px; right: 40px; height: 48px;
+    background: 
+        linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.2) 55%, transparent 100%),
+        linear-gradient(90deg, var(--accent) 0%, #fff 50%, var(--accent) 100%);
+    background-size: 100% 100%, 200% 100%;
+    --mask-wave: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 48' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 24H540C580 24 600 4 640 4C680 4 700 44 760 44C820 44 840 4 880 4C920 4 940 24 980 24H1440' stroke='black' stroke-width='4' fill='none' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+    --mask-taper: linear-gradient(to right, transparent 0px, black 15px, black calc(100% - 15px), transparent 100%);
+    -webkit-mask-image: var(--mask-taper), var(--mask-wave); mask-image: var(--mask-taper), var(--mask-wave);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    animation: neon-flow 4s linear infinite, wave-pulse 3s infinite ease-in-out;
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(0 8px 12px rgba(0,0,0,0.6)) drop-shadow(0 0 12px var(--accent-glow));
+    z-index: 10; pointer-events: none; 
     }
 
     .footer-content {
-        flex-direction: column;
-        gap: 40px;
-        text-align: center;
+    max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;
+    gap: 20px; perspective: 1000px; position: relative; z-index: 5; 
     }
 
-    /* Контакты: выстраиваем в два столбца вместо длинной строки */
+    .footer-left { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-left: -35px; }
+    .footer-right { display: flex; align-items: center; gap: 24px; }
 
-    .contacts {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 15px;
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-    }
-
-    .contacts a {
-        justify-content: center; /* Центрируем иконку и текст внутри ссылки */
-        background: rgba(255, 255, 255, 0.03);
-        padding: 12px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-    }
-
-    /* Убираем лишние декоративные элементы, которые мешают на мобилках */
-
-    .footer-hud, .hud-corner, .hud-text {
-        display: none !important;
-    }
-
-    .footer-left {
-        align-items: center;
-        margin-left: 0;
-    }
-
-    /* Копирайт и статус-баджи */
+    /* Status Badge */
 
     .status-badge {
-        margin-bottom: 10px;
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+    background: rgba(108, 242, 194, 0.05); border: 1px solid rgba(108, 242, 194, 0.2);
+    border-radius: 20px; font-size: 0.75rem; color: var(--accent); font-weight: 600;
+    box-shadow: 0 0 10px rgba(108, 242, 194, 0.05);
     }
+    .status-dot {
+    width: 8px; height: 8px; background-color: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent); animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot { 0% { transform: scale(0.95); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px var(--accent); } 100% { transform: scale(0.95); opacity: 0.7; } }
+
+    /* Tech Copyright */
 
     .copyright {
-        font-size: 0.7rem;
-        padding: 10px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 0.75rem; color: var(--muted);
+    background: rgba(255, 255, 255, 0.02); padding: 8px 14px; border-radius: 6px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1); display: inline-block;
+    backdrop-filter: blur(4px); transition: all 0.3s ease; line-height: 1;
+    }
+    .copyright:hover {
+    color: var(--accent); background: rgba(108, 242, 194, 0.05); border-left-color: var(--accent);
+    box-shadow: 0 0 15px rgba(108, 242, 194, 0.1); text-shadow: 0 0 5px var(--accent);
+    transform: translateX(2px); cursor: help;
     }
 
-    /* Кнопка "Наверх" */
+    /* Contacts */
 
-    .footer-right {
-        width: 100%;
-        display: flex;
-        justify-content: center;
+    .contacts { display: flex; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .contacts a {
+    display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none;
+    font-size: 0.85rem; font-weight: 600; padding: 8px 12px; border-radius: 10px;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); transform-style: preserve-3d;
     }
-}
-
-/* Фикс для очень узких экранов (телефоны в портретном режиме) */
-
-@media (max-width: 480px) {
-    .contacts {
-        grid-template-columns: 1fr; /* На самых маленьких экранах — всё в один столбик */
+    .contacts a:hover {
+    color: var(--accent); background: rgba(255, 255, 255, 0.02);
+    transform: translateY(-5px) rotateX(10deg); text-shadow: 0 0 8px var(--accent);
     }
+    .contacts svg, .contacts .steam-img { width: 18px; height: 18px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); transition: transform 0.4s ease; }
+    .contacts .steam-img { object-fit: contain; filter: brightness(0) invert(1) contrast(1.1); }
+    .contacts a:hover svg, .contacts a:hover .steam-img { transform: translateZ(15px) scale(1.1); filter: brightness(1.2) drop-shadow(0 0 8px var(--accent)); }
 
-    /* Сдвигаем кнопку перевода выше, чтобы она не перекрывала контакты */
+    /* Back to Top */
 
-    .mobile-lang-btn {
-        bottom: 85px; 
-        right: 15px;
-        width: 45px;
-        height: 45px;
+    .back-to-top {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: rgba(255,255,255,0.03); color: var(--accent);
+    border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; position: relative;
+    overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    
-    /* Сдвигаем виджет аудио, чтобы не было конфликта */
+    .back-to-top svg { width: 20px; height: 20px; transition: transform 0.3s ease; z-index: 2; }
+    .back-to-top::before {
+    content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 100%; background: var(--accent); transition: top 0.3s ease; z-index: 1;
+    }
+    .back-to-top:hover { box-shadow: 0 0 20px var(--accent-glow); border-color: var(--accent); }
+    .back-to-top:hover::before { top: 0; }
+    .back-to-top:hover svg { color: #000; transform: translateY(-3px); }
+
+    /* 9. AUDIO WIDGET */
 
     .audio-widget {
-        bottom: 20px;
-        left: 15px;
-    }
-}
-
-/* 17 AUDIO WIDGET: MOBILE STANDALONE STYLE */
-
-@media (max-width: 1024px) {
-
-    /* Скрываем стандартный контейнер и ползунок */
-
-    .volume-control {
-        display: none !important;
-    }
-
-    .audio-widget {
-        bottom: 25px;
-        left: 25px;
-        gap: 0;
-    }
-
-    /* Превращаем кнопку в круглую (как кнопку языка) */
-
-    .cyber-audio-btn {
-        width: 50px;
-        height: 50px;
-        padding: 0;
-        justify-content: center;
-        border-radius: 50%; /* Делаем круглой */
-        clip-path: none;    /* Отменяем срезанные углы для круга */
-        border: 1px solid var(--accent);
-        background: var(--bg-secondary);
-        box-shadow: 0 0 15px var(--accent-glow);
-        border-left: 1px solid var(--accent); /* Сбрасываем толстую полосу слева */
-    }
-
-    /* Скрываем текст "ЗВУК: ВЫКЛ" на мобилках, оставляем только иконку и эквалайзер */
-
-    .audio-text {
-        display: none !important;
-    }
-
-    .cyber-audio-btn i {
-        font-size: 1.4rem; /* Увеличиваем иконку для тапа */
-        margin: 0;
-    }
-
-    /* Смещаем эквалайзер чуть ниже иконки внутри круга */
-
-    .equalizer {
-        position: absolute;
-        bottom: 8px;
-        height: 8px;
-    }
-
-    .cyber-audio-btn:active {
-        transform: scale(0.9);
-    }
-}
-
-@media (max-width: 768px) {
-    .projects-track {
-        display: flex;
-        overflow-x: auto;
-
-        /* Убираем дерганье при автоскролле */
-
-        scroll-behavior: smooth;
-
-        /* Магнитный эффект */
-
-        scroll-snap-type: x mandatory;
-
-        /* Скрываем стандартный скроллбар */
-
-        scrollbar-width: none; 
-        -webkit-overflow-scrolling: touch;
-        gap: 20px;
-        padding: 0 15px 30px;
-    }
-
-    .project-card {
-        min-width: calc(100vw - 60px);
-        scroll-snap-align: center; /* Карточка всегда центрируется */
-        transition: transform 0.5s ease;
-    }
-
-    /* Легкое уменьшение боковых карточек для фокуса на центральной */
-
-    .projects-track::-webkit-scrollbar { display: none; }
-}
-
-/* 18 FOOTER MOBILE OPTIMIZATION (SHIFT & BOUNDS) */
-
-@media (max-width: 480px) {
-    /* 1. Создаем отступ для аудио-кнопки */
-
-    .footer-left {
-        padding-left: 60px; /* Сдвигаем блок вправо, освобождая место слева */
-        align-items: flex-start !important;
-        text-align: left !important;
-    }
-
-    /* 2. Ограничиваем ширину контента, чтобы он не упирался в кнопку языка справа */
-
-    .footer-content {
-        max-width: 100%;
-        padding-right: 60px; /* Безопасная зона справа */
-        box-sizing: border-box;
-    }
-
-    /* 3. Компактная сетка контактов, чтобы не выходила за пределы */
-
-    .contacts {
+        position: fixed;
+        bottom: 50px;
+        left: 0;
+        z-index: 1100;
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
-        width: fit-content;
+        gap: 8px;
+        transform: translateX(calc(-100% + 55px)); 
+        transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
     }
 
-    /* 4. Фиксация положения кнопок (Sound & Lang) */
-
-    .audio-widget {
-        bottom: 20px !important;
-        left: 15px !important;
-        z-index: 1002; /* Поверх всего */
+    /* Зона захвата для стабильности */
+    
+    .audio-widget::after {
+        content: '';
+        position: absolute;
+        top: -10px; right: -30px; bottom: -10px; left: 0;
+        z-index: -1;
     }
 
-    .mobile-lang-btn {
-        bottom: 20px !important; /* Опускаем на один уровень со звуком */
-        right: 15px !important;
-        z-index: 1002;
+    .audio-widget:hover {
+        transform: translateX(0);
     }
 
-    /* 5. Инфо-блок "Система в сети" */
-
-    .status-badge {
-        font-size: 0.7rem;
-        padding: 5px 10px;
-        white-space: nowrap;
+    /* Контроль громкости */
+    
+    .volume-control {
+        background: rgba(14, 14, 17, 0.95) !important;
+        border: 1px solid var(--accent) !important;
+        padding: 12px !important;
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transform: translateX(-20px);
+        pointer-events: none;
+        transition: all 0.4s ease;
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%) !important;
+        margin-left: 10px;
     }
-}
-/*   BIO TEXT — MULTILINE FIX */
 
-.bio-text.hacker-text {
-    display: block !important;
-    width: 100%;
-    margin: 15px 0;
+    .audio-widget:hover .volume-control {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: all;
+        transition-delay: 0.1s;
+    }
 
-    white-space: normal !important;
-    word-wrap: break-word;
+    /* 1. Контейнер */
+    #volumeSlider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100px;       /* Чуть шире, как на скринах */
+        height: 6px;        /* Оптимальная высота для полосы прогресса */
+        background: transparent;
+        outline: none;
+        cursor: pointer;
+        margin: 0;
+        z-index: 2;
+    }
 
-    text-align: left;
-    line-height: 1.5;
-}
+    /* 2. ДОРОЖКА */
+   
+    #volumeSlider::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+      
+        /* Градиент: Заполненная часть Accent + Пустая часть Полупрозрачный белый */
+      
+        background: linear-gradient(90deg, 
+            var(--accent) var(--value, 30%), 
+            rgba(255, 255, 255, 0.1) var(--value, 30%)
+        );
+        border-radius: 3px; 
+        transition: background 0.1s linear;
+    }
 
+    /* 3. БЕГУНОК */
+    
+    #volumeSlider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;        
+        height: 14px;
+        background: var(--accent); 
+        border: 2px solid var(--bg-secondary); 
+        border-radius: 50%; 
+        margin-top: -4px;   
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-/*  19 FINAL MOBILE STABILIZATION BLOCK*/
+    /* 4. ЭФФЕКТ ПРИ НАВЕДЕНИИ */
+    
+    #volumeSlider:hover::-webkit-slider-thumb {
+        transform: scale(1.3); /* Увеличивается */
+        cursor: grab;
+        
+        /* Запускаем анимацию пульсации */
+        
+        animation: thumb-pulse 1.5s infinite; 
+    }
 
-@media (max-width: 768px) {
+    #volumeSlider:active::-webkit-slider-thumb {
+        cursor: grabbing;
+        transform: scale(1.1);
+    }
 
-    /* 1. SECTION CONTAINERS */
+    /* АНИМАЦИЯ ПУЛЬСАЦИИ */
+    
+    @keyframes thumb-pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(108, 242, 194, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 8px rgba(108, 242, 194, 0); 
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(108, 242, 194, 0);
+        }
+    }
 
-    .section {
-        padding: 40px 15px !important;
+    /* 5. ЦИФРОВОЙ ИНДИКАТОР */
+   
+    #volumeDisplay {
+        font-family: 'Consolas', monospace;
+        font-size: 10px;
+        color: var(--accent);
+        margin-left: 10px;
+        opacity: 0.8;
+        width: 25px;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    /* Поддержка Firefox */
+   
+    #volumeSlider::-moz-range-track {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+    #volumeSlider::-moz-range-progress {
+        background: var(--accent);
+        height: 6px;
+        border-radius: 3px;
+    }
+    #volumeSlider::-moz-range-thumb {
+        width: 14px; height: 14px;
+        background: var(--accent);
+        border: 2px solid var(--bg-secondary);
+        border-radius: 50%;
+        margin-top: -4px;
+    }
+
+    /* Кнопка-закладка: ДИЗАЙН С ЦИФРОВОЙ КРОМКОЙ */
+    
+    button.cyber-audio-btn {
+        background: rgba(14, 14, 17, 0.95) !important;
+        border: 1px solid rgba(108, 242, 194, 0.3) !important;
+        
+        /* Акцентная линия слева как на скринах кнопок */
+       
+        border-left: 4px solid var(--accent) !important; 
+        padding: 0 !important; 
+        display: flex !important;
+        align-items: center !important;
+        cursor: pointer;
+        transition: all 0.3s ease !important;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 92% 100%, 0% 100%) !important;
+        height: 48px;
         overflow: hidden;
     }
 
-
-    /*  2. ABOUT / BIO*/
-    .about-card {
-        display: flex !important;
-        flex-direction: column !important;
+    /* Фиксированная зона для иконки (всегда видна слева) */
+    
+    .audio-icon-box {
+        width: 55px;
+        height: 100%;
+        display: flex;
         align-items: center;
-        gap: 20px;
+        justify-content: center;
+        flex-shrink: 0;
+        border-right: 1px solid rgba(108, 242, 194, 0.1);
     }
+
+    /* Скрытая текстовая часть */
+    
+    .audio-info-box {
+        padding: 0 20px 0 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        white-space: nowrap;
+    }
+
+    button.cyber-audio-btn.playing {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 20px var(--accent-glow) !important;
+    }
+
+    .audio-text {
+        font-family: 'Consolas', monospace;
+        font-size: 0.75rem !important;
+        letter-spacing: 1px;
+        color: var(--muted);
+    }
+
+    button.cyber-audio-btn.playing .audio-text { color: var(--accent) !important; }
+    button.cyber-audio-btn.playing i { color: var(--accent); }
+
+    /* Эквалайзер */
+   
+    .equalizer { display: flex; gap: 3px; height: 14px; align-items: flex-end; }
+    .bar { width: 3px; height: 3px; background-color: var(--muted); }
+    button.cyber-audio-btn.playing .bar {
+        background-color: var(--accent);
+        animation: equalize 0.8s infinite ease-in-out;
+    }
+
+    @keyframes equalize { 0%, 100% { height: 3px; } 50% { height: 14px; } }
+
+    /* МОБИЛЬНАЯ ВЕРСИЯ */
+    
+    @media (max-width: 1024px) {
+        .audio-widget {
+            left: 30px !important;
+            bottom: 60px !important; 
+            transform: none !important;
+            width: 80px; height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+        
+        .audio-widget::after { display: none; }
+
+        button.cyber-audio-btn {
+            width: 55px !important; 
+            height: 55px !important;
+            background: rgba(14, 14, 17, 0.98) !important;
+            border: 1px solid var(--accent) !important;
+            position: relative;
+            z-index: 10;
+            display: flex !important;
+            align-items: center;
+            justify-content: center; 
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* ЭКВАЛАЙЗЕР */
+        
+        .audio-info-box {
+            position: absolute;
+            inset: 0;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .equalizer.horizontal {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .equalizer.horizontal .bar {
+            position: absolute;
+            width: 2px;
+            height: 12px;
+            background: var(--accent);
+            opacity: 0;
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--accent);
+            border-radius: 2px;
+            transform-origin: center;
+        }
+
+        /* Расстановка 8 лучей */
+        
+        .equalizer.horizontal .bar:nth-child(1) { transform: rotate(0deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(2) { transform: rotate(45deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(3) { transform: rotate(90deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(4) { transform: rotate(135deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(5) { transform: rotate(180deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(6) { transform: rotate(225deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(7) { transform: rotate(270deg) translateY(-38px); }
+        .equalizer.horizontal .bar:nth-child(8) { transform: rotate(315deg) translateY(-38px); }
+
+        /* АНИМАЦИЯ ПРИ ИГРЕ */
+       
+        button.cyber-audio-btn.playing + .audio-info-box .bar {
+            opacity: 0.7;
+            animation: cyber-burst-mobile 0.6s infinite ease-in-out;
+        }
+
+        /* Хаотичность пульсации */
+       
+        .bar:nth-child(odd) { animation-delay: 0.1s; animation-duration: 0.5s; }
+        .bar:nth-child(even) { animation-delay: 0.3s; animation-duration: 0.7s; }
+
+        @keyframes cyber-burst-mobile {
+            0%, 100% { height: 10px; opacity: 0.4; filter: brightness(1); }
+            50% { height: 24px; opacity: 1; filter: brightness(1.8); }
+        }
+
+        /* Иконка в центре */
+       
+        .audio-icon-box {
+            width: 100%; height: 100%;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            border: none !important;
+        }
+        
+        .audio-icon-box i {
+            font-size: 1.3rem !important;
+            color: var(--accent);
+            opacity: 0.6;
+            display: block !important;
+        }
+
+        button.cyber-audio-btn.playing .audio-icon-box i {
+            opacity: 1;
+            animation: pulse-icon-mobile 1.2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-icon-mobile {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--accent)); }
+            50% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--accent)); }
+        }
+
+        .audio-text, .volume-control { display: none !important; }
+    }
+
+    /* 10. VIDEO MODAL HUD STYLE & RIPPLES */
+
+    .video-modal {
+        position: fixed;
+        inset: 0;
+        display: flex; /* Flex всегда, но скрываем через opacity/visibility */
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .video-modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Фон с размытием и сеткой */
+   
+    .video-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(14, 14, 17, 0.9);
+        backdrop-filter: blur(8px);
+        background-image: 
+            linear-gradient(rgba(108, 242, 194, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(108, 242, 194, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    /* Окно контента */
+    
+    .video-content {
+        position: relative;
+        width: 90%;
+        max-width: 960px;
+        background: #000;
+        border: 1px solid rgba(108, 242, 194, 0.3);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        transform: scale(0.95);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .video-modal.active .video-content {
+        transform: scale(1);
+    }
+
+    /* Верхняя панель заголовка */
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        background: rgba(108, 242, 194, 0.05);
+        border-bottom: 1px solid rgba(108, 242, 194, 0.2);
+    }
+
+    .modal-title {
+        font-family: 'Consolas', monospace;
+        font-size: 0.8rem;
+        color: var(--accent);
+        letter-spacing: 1px;
+    }
+
+    /* Кнопка закрытия */
+   
+    .video-close {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        padding: 5px 12px;
+        font-family: 'Consolas', monospace;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .video-close:hover {
+        background: var(--accent);
+        color: #000;
+        border-color: var(--accent);
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    /* Адаптивная обертка для видео (16:9) */
+   
+    .video-wrapper {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 */
+        height: 0;
+        background: #000;
+    }
+
+    .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    /* Декоративные уголки HUD Corners */
+    
+    .modal-corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--accent);
+        pointer-events: none;
+        z-index: 2;
+        transition: all 0.5s ease;
+    }
+
+    .modal-corner.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+    .modal-corner.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+    .modal-corner.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+    .modal-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+    .video-modal.active .modal-corner {
+        width: 40px; height: 40px; /* Анимация расширения уголков */
+    }
+
+
+    /* 11. CUSTOM HUD VIDEO PLAYER DESKTOP & MOBILE ADAPTIVE */
+
+    .custom-video-player {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 */
+    background: #000;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    
+    /* ЭФФЕКТ "ВКЛЮЧЕНИЯ" */
+   
+    opacity: 0;
+    transform: scaleY(0); 
+    transform-origin: center;
+    filter: blur(10px);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .custom-video-player.initialized {
+    opacity: 1;
+    transform: scaleY(1);
+    filter: blur(0);
+    }
+
+    .custom-video-player video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    }
+
+    /* Скан-линии */
+    
+    .scanline-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+    z-index: 5;
+    }
+
+    /* КНОПКА PLAY */
+   
+    .big-play-btn {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s ease;
+    }
+
+    .custom-video-player.playing .big-play-btn {
+    opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    .play-icon-shape {
+    width: 100%; height: 100%;
+    background: rgba(14, 14, 17, 0.8);
+    border: 2px solid var(--accent);
+    border-radius: 50%; /* КРУГ */
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    .play-icon-shape i { font-size: 2.5rem; color: var(--accent); margin-left: 5px; }
+
+    .big-play-btn:hover .play-icon-shape {
+    background: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+    }
+    .big-play-btn:hover i { color: #000; }
+
+    /* МЕНЮ НАСТРОЕК  */
+   
+    .settings-menu {
+    position: absolute;
+    bottom: 60px; right: 20px;
+    width: 200px;
+    background: rgba(14, 14, 17, 0.95);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 15px;
+    z-index: 40;
+    opacity: 0; transform: translateY(10px); pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    backdrop-filter: blur(10px);
+    }
+    .settings-menu.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .setting-group { margin-bottom: 12px; }
+    .setting-label { display: block; font-family: 'Consolas', monospace; font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+    .setting-options { display: flex; gap: 5px; flex-wrap: wrap; }
+    .setting-options button {
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff; font-size: 0.75rem; padding: 4px 8px; cursor: pointer; flex: 1;
+    font-family: 'Consolas', monospace; transition: all 0.2s;
+    }
+    .setting-options button:hover { border-color: var(--accent); color: var(--accent); }
+    .setting-options button.active { background: var(--accent); color: #000; font-weight: bold; }
+    #settingsBtn i { transition: transform 0.5s ease; }
+    #settingsBtn.active i { transform: rotate(90deg); color: var(--accent); }
+
+    /*  ОБРАТНАЯ СВЯЗЬ АНИМАЦИЯ ПО ЦЕНТРУ */
+   
+    .keyboard-feedback {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) scale(0.5);
+        width: 80px; height: 80px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid var(--accent);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--accent);
+        font-size: 2.5rem;
+        opacity: 0; pointer-events: none; z-index: 50;
+        box-shadow: 0 0 20px var(--accent-glow);
+    }
+    .keyboard-feedback.animate { animation: feedbackPop 0.6s ease-out forwards; }
+    @keyframes feedbackPop {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+
+    /*  ПАНЕЛЬ УПРАВЛЕНИЯ */
+    
+    .player-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+    padding: 20px 20px 15px;
+    z-index: 30;
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.3s ease;
+    display: flex; flex-direction: column; gap: 5px;
+    }
+    .custom-video-player:hover .player-controls,
+    .custom-video-player.paused .player-controls { opacity: 1; transform: translateY(0); }
+
+    /*  ПРОГРЕСС БАР */
+    
+    .progress-container { width: 100%; position: relative; height: 10px; display: flex; align-items: center; }
+    #videoProgress {
+    -webkit-appearance: none; width: 100%; height: 4px;
+    background: transparent; outline: none; cursor: pointer; z-index: 2; transition: all 0.2s;
+    }
+    #videoProgress::-webkit-slider-runnable-track {
+        background: linear-gradient(90deg, var(--accent) var(--seek-position, 0%), rgba(255,255,255,0.1) var(--seek-position, 0%));
+        height: 4px; border-radius: 2px;
+    }
+    #videoProgress::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    background: var(--accent); border: 2px solid #000; border-radius: 50%;
+    margin-top: -5px; box-shadow: 0 0 10px var(--accent-glow);
+    transform: scale(1); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #videoProgress:hover::-webkit-slider-thumb { transform: scale(1.4); background: #fff; box-shadow: 0 0 15px var(--accent); }
+
+    /*  КНОПКИ, ГРОМКОСТЬ И ВРЕМЯ  */
+    
+    .controls-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+
+    .left-controls { 
+    display: flex; align-items: center; 
+    gap: 5px; 
+    }
+    .right-controls { display: flex; align-items: center; gap: 15px; }
+
+    .hud-btn {
+    background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;
+    opacity: 0.8; transition: all 0.2s; display: flex; align-items: center;
+    }
+    .hud-btn:hover { color: var(--accent); opacity: 1; text-shadow: 0 0 10px var(--accent); transform: scale(1.1); }
+
+    /* ЛЕВАЯ ЧАСТЬ ПАНЕЛИ */
+    
+    .left-controls { 
+    display: flex; 
+    align-items: center; /* Уменьшаем расстояние между ВСЕМИ элементами (Play, Volume, Time) */
+    gap: 5px; 
+    }
+
+    /* ВРЕМЯ */
+    
+    .time-display {
+    font-family: 'Consolas', monospace; 
+    font-size: 0.85rem; 
+    color: var(--muted); /* УБИРАЕМ margin-left: -100px, так как он перекрывает громкость */
+    margin-left: 5px;  /* Это позволяет кликам проходить сквозь текст, если он вдруг что-то перекроет */
+    pointer-events: none; 
+    white-space: nowrap; /* Чтобы текст не прыгал */
+    }
+
+    /* ГРОМКОСТЬ */
+    .video-volume-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    z-index: 10; /* Поднимаем громкость выше остальных элементов */
+    position: relative;
+    }
+
+    .video-volume-box i { font-size: 1.1rem; color: var(--muted); }
+
+    #videoVolume { 
+    -webkit-appearance: none; 
+    width: 70px; 
+    height: 4px; 
+    background: transparent; 
+    outline: none; 
+    cursor: pointer; /* Важно: ползунок должен быть кликабельным */
+    position: relative; 
+    z-index: 20; 
+    }
+
+    #videoVolume::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--accent) var(--vol-position, 70%), rgba(255,255,255,0.1) var(--vol-position, 70%)); 
+    height: 4px;
+    }
+
+    #videoVolume::-webkit-slider-thumb {
+    -webkit-appearance: none; 
+    width: 10px; 
+    height: 10px; 
+    background: var(--accent); 
+    border-radius: 50%; 
+    margin-top: -3px;
+    box-shadow: 0 0 5px var(--accent); 
+    transition: transform 0.2s;
+    cursor: grab;
+    }
+
+    #videoVolume:hover::-webkit-slider-thumb { transform: scale(1.3); }
+
+
+    /*  МОБИЛЬНАЯ АДАПТАЦИЯ Max Width 768px */
+
+    @media (max-width: 768px) {
+    
+    /*  1. Адаптация контролов */
+   
+    .player-controls {
+        padding: 10px 15px;  /* Учитываем "челку" и полосу прокрутки на iPhone */
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        padding-left: calc(15px + env(safe-area-inset-left));
+        padding-right: calc(15px + env(safe-area-inset-right));
+        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    }
+
+    /* Скрываем громкость  */
+   
+    .video-volume-box { display: none; }
+
+    /* Увеличиваем кнопки */
+   
+    .hud-btn { font-size: 1.4rem; padding: 10px; }
+
+    /* Время */
+  
+    .time-display { margin-left: 2px; font-size: 0.75rem; }
+
+    /* Уменьшаем кнопку Play */
+   
+    .big-play-btn { width: 60px; height: 60px; }
+    .play-icon-shape i { font-size: 1.8rem; }
+
+    /* Обратная связь */
+   
+    .keyboard-feedback { width: 60px; height: 60px; font-size: 2rem; }
+
+    /* Меню настроек - центрируем */
+   
+    .settings-menu {
+        width: 90%; left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        bottom: 70px; /* Чуть выше из-за safe-area */
+        right: auto;
+    }
+    .settings-menu.active { transform: translateX(-50%) translateY(0); }
+    
+    /* Прогресс бар - удобнее нажимать */
+    
+    .progress-container { height: 20px; }
+    #videoProgress::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -7px; }
+    }
+
+    /* 2. ПОДДЕРЖКА ГОРИЗОНТАЛЬНОГО РЕЖИМА LANDSCAPE */
+    /* Если пользователь повернул телефон, растягиваем плеер на весь экран */
+  
+    @media (max-width: 900px) and (orientation: landscape) {
+    
+    .video-modal {
+        align-items: flex-start; /* Чтобы не центрировалось, а заполняло */
+        background: #000;
+    }
+
+    .video-content {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        border: none;
+        transform: none !important;
+    }
+    
+    .custom-video-player {
+        height: 100vh;
+        padding-bottom: 0; /* Убираем пропорции 16:9, теперь высота фиксированная */
+    }
+
+    .custom-video-player video {
+        object-fit: contain; /* Видео целиком вписывается в экран */
+    }
+
+    /* Скрываем шапку модалки в горизонтали, чтобы видео было больше */
+   
+    .modal-header {
+        position: absolute;
+        top: 0; left: 0; width: 100%;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        border: none;
+        z-index: 50;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    /* Показываем шапку при тапе/наведении */
+    
+    .video-modal:hover .modal-header,
+    .custom-video-player:hover ~ .modal-header {
+        opacity: 1;
+    }
+    }
+
+    /* 3. СТИЛИ ДЛЯ NATIVE FULLSCREEN API */
+    /* Когда браузер переводит элемент в реальный полноэкранный режим */
+   
+    :fullscreen, ::backdrop {
+    background-color: #000;
+    }
+
+    .custom-video-player:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    padding-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .custom-video-player:fullscreen video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    }
+
+    /* Специально для iPhone/Safari webkit */
+   
+    .custom-video-player:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    padding-bottom: 0;
+    }
+
+    /* CLICK RIPPLE Эффект клика по футеру */
+   
+    .click-ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+        border: 1px solid rgba(108, 242, 194, 0.5);
+        animation: shockwave 0.6s ease-out forwards;
+        z-index: 10;
+    }
+
+    @keyframes shockwave {
+        0% { width: 0; height: 0; opacity: 1; }
+        100% { width: 300px; height: 300px; opacity: 0; }
+    }
+
+
+
+    /* 12. MOBILE UI & LANGUAGE TOGGLE */
+
+    .mobile-lang-btn {
+        display: none; /* Скрыто на ПК */
+        position: fixed;
+
+        /* ПОДНЯТО: теперь 125px от низа, чтобы не мешать карточкам и аудио */
+
+        bottom: 125px; 
+        right: 25px;
+        z-index: 1100; /* Выше всех HUD элементов */
+        background: var(--bg-secondary);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        border-radius: 50%;
+        width: 50px; 
+        height: 50px;
+        align-items: center; 
+        justify-content: center;
+        box-shadow: 0 0 15px var(--accent-glow);
+        font-family: 'Consolas', monospace;
+        font-weight: bold;
+        text-transform: uppercase;
+
+        /* Анимация привлечения внимания */
+
+        animation: bounce-attention 5s infinite;
+        cursor: pointer;
+        transition: all 0.3s var(--transition-base);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-lang-btn:active {
+        transform: scale(0.9) rotate(5deg);
+        background: var(--accent);
+        color: var(--bg);
+    }
+
+    @keyframes bounce-attention {
+        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-12px); }
+        60% { transform: translateY(-6px); }
+    }
+
+    /* ГЛОБАЛЬНАЯ АДАПТАЦИЯ (MOBILE FIX) */
+
+    @media (max-width: 1024px) {
+        .mobile-lang-btn { 
+            display: flex; 
+        }
+
+        /* Отключаем hover-эффекты текста на мобилках, чтобы не мешали скроллу */
+
+        .hacker-text { 
+            pointer-events: auto; /* Разрешаем клик (тап), но CSS-ховеры не сработают */
+        }
+        
+        /* Центрирование Hero */
+
+        .hero-content-wrapper { 
+            text-align: center; 
+            align-items: center; 
+        }
+        .hero-actions { 
+            flex-direction: column; 
+            width: 100%; 
+            max-width: 320px; 
+            margin: 0 auto; 
+            gap: 15px; 
+        }
+        .btn-cyber-primary, 
+        .btn-cyber-secondary { 
+            width: 100% !important; 
+            margin: 0 !important; 
+        }
+
+        /* Очистка HUD для мобильных */
+
+        .volume-control, 
+        .hud-corner, 
+        .hud-text,
+        .scroll-indicator { 
+            display: none !important; 
+        }
+
+        /* Кнопка звука */
+
+        .audio-widget { 
+            bottom: 25px; 
+            left: 25px; 
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-title { 
+            font-size: 1.6rem; 
+            padding: 0 10px;
+        }
+        
+        .about-card { 
+            padding: 20px 15px; 
+        }
+        
+        .footer { 
+            padding: 50px 20px 100px; /* Больше отступа снизу из-за кнопок */
+        }
+
+        /* Смещаем кнопку языка чуть правее на мелких экранах */
+    
+        .mobile-lang-btn {
+            right: 15px;
+            bottom: 120px;
+        }
+        .audio-widget {
+            left: 15px;
+            bottom: 25px;
+        }
+    }
+
+    /* 13 ABOUT SECTION: ADAPTIVE FIX */
+
+    @media (max-width: 900px) {
+        .about-card {
+    
+            /* Переключаем сетку в одну колонку */
+    
+            grid-template-columns: 1fr;
+            padding: 20px 15px;
+            gap: 25px;
+    
+            /* Убираем жесткую высоту, если она была */
+    
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .about-visual {
+            width: 100%;
+            max-width: 280px; /* Ограничиваем ширину рамки фото */
+            margin: 0 auto;
+        }
+
+        .profile-frame {
+            height: 250px; /* Уменьшаем высоту фото для мобилок */
+        }
+
+        .about-content {
+            width: 100%;
+            text-align: center; /* Центрируем текст для лучшего вида на узком экране */
+        }
+
+        .bio-text {
+            border-left: none; /* Убираем боковую линию, она занимает место */
+            padding-left: 0;
+            margin-bottom: 20px;
+            font-size: 0.9rem; /* Чуть уменьшаем шрифт */
+        }
+
+        .bio-stats-grid {
+            grid-template-columns: 1fr; /* Статы в один столбик, чтобы не сжимались */
+            gap: 10px;
+            width: 100%;
+        }
+
+        .bio-stat {
+            padding: 12px;
+            text-align: left; /* Внутри стата текст лучше оставить слева */
+        }
+
+        /* Исправление для "Данные профиля" заголовка */
+    
+        .section h2 {
+            font-size: 1.6rem;
+            margin-bottom: 30px;
+        }
+    }
+
+        /* Дополнительный фикс для совсем маленьких экранов (iPhone SE и т.д.) */
+
+        @media (max-width: 400px) {
+            .hero-title {
+                font-size: 1.5rem;
+            }
+            .about-card {
+                padding: 15px 10px;
+            }
+            .stat-data {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* SCROLL INDICATOR: HIDE ON MOBILE */
+
+        @media (max-width: 1024px) {
+            .scroll-indicator {
+                display: none !important;
+            }
+        }
+
+    /* 14 PROJECTS: PREMIUM MOBILE EXPERIENCE */
+
+    @media (max-width: 768px) {
+        .projects-container {
+            mask-image: none;
+            -webkit-mask-image: none;
+
+            /* Оставляем небольшие отступы, чтобы карточка была в центре */
+
+            padding: 0 30px; 
+            overflow: visible; /* Позволяет видеть тени соседних карточек */
+        }
+
+        .projects-track {
+            gap: 15px;
+            padding-bottom: 30px;
+
+            /* Жесткая привязка: скролл всегда остановится на центре карточки */
+
+            scroll-snap-type: x mandatory;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .project-card {
+
+            /* Идеальный размер: карточка почти на весь экран, но видны края других */
+
+            min-width: calc(100vw - 60px); 
+            max-width: calc(100vw - 60px);
+            scroll-snap-align: center;
+            
+            /* Улучшаем визуальный вес */
+
+            background: rgba(22, 22, 28, 0.95);
+            border: 1px solid rgba(108, 242, 194, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Делаем область изображения компактнее на мобилках */
+
+        .card-image-wrapper {
+            height: 160px;
+        }
+
+        /* Увеличиваем кликабельность ссылки */
+
+        .card-link {
+            padding: 12px 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(108, 242, 194, 0.3);
+        }
+
+        .project-card h3 {
+            font-size: 1.4rem;
+            margin-top: 10px;
+        }
+
+        .card-tags {
+            gap: 5px;
+        }
+
+        .card-tags span {
+            padding: 4px 8px;
+            font-size: 0.6rem;
+        }
+
+        /* Скрываем кнопки стрелок, они мешают на тач-экранах */
+
+        .slider-nav {
+            display: none;
+        }
+    }
+
+    /* 15 PROJECTS: MOBILE CENTER ALIGNMENT */
+
+    @media (max-width: 768px) {
+        .projects-container {
+            padding: 0; /* Убираем лишние отступы здесь */
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .projects-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+
+            /* Магнитное центрирование */
+
+            scroll-snap-type: x mandatory; 
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            
+            /* Важно: отступы слева и справа должны быть равны, 
+            чтобы первая и последняя карточки тоже могли встать по центру */
+
+            padding: 0 30px 30px; 
+            gap: 15px;
+        }
+
+        .project-card {
+
+            /* Карточка занимает почти всю ширину, оставляя место для зазоров */
+
+            min-width: calc(100vw - 60px); 
+            max-width: calc(100vw - 60px);
+            
+            /* Привязка центра карточки к центру контейнера */
+
+            scroll-snap-align: center; 
+            
+            flex-shrink: 0; /* Запрещаем сжатие */
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+
+        /* Скрываем скроллбар для чистоты */
+
+        .projects-track::-webkit-scrollbar { display: none; }
+    }
+
+
+    /* 16 FOOTER: MOBILE ADAPTIVE OPTIMIZATION */
+
+    @media (max-width: 900px) {
+        .footer {
+            padding: 60px 15px 30px; /* Уменьшаем внутренние отступы */
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            flex-direction: column;
+            gap: 40px;
+            text-align: center;
+        }
+
+        /* Контакты: выстраиваем в два столбца вместо длинной строки */
+
+        .contacts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .contacts a {
+            justify-content: center; /* Центрируем иконку и текст внутри ссылки */
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* Убираем лишние декоративные элементы, которые мешают на мобилках */
+
+        .footer-hud, .hud-corner, .hud-text {
+            display: none !important;
+        }
+
+        .footer-left {
+            align-items: center;
+            margin-left: 0;
+        }
+
+        /* Копирайт и статус-баджи */
+
+        .status-badge {
+            margin-bottom: 10px;
+        }
+
+        .copyright {
+            font-size: 0.7rem;
+            padding: 10px;
+        }
+
+        /* Кнопка "Наверх" */
+
+        .footer-right {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    /* Фикс для очень узких экранов (телефоны в портретном режиме) */
+
+    @media (max-width: 480px) {
+        .contacts {
+            grid-template-columns: 1fr; /* На самых маленьких экранах — всё в один столбик */
+        }
+
+        /* Сдвигаем кнопку перевода выше, чтобы она не перекрывала контакты */
+
+        .mobile-lang-btn {
+            bottom: 85px; 
+            right: 15px;
+            width: 45px;
+            height: 45px;
+        }
+        
+        /* Сдвигаем виджет аудио, чтобы не было конфликта */
+
+        .audio-widget {
+            bottom: 20px;
+            left: 15px;
+        }
+    }
+
+    /* 17 AUDIO WIDGET: MOBILE STANDALONE STYLE */
+
+    @media (max-width: 1024px) {
+
+        /* Скрываем стандартный контейнер и ползунок */
+
+        .volume-control {
+            display: none !important;
+        }
+
+        .audio-widget {
+            bottom: 25px;
+            left: 25px;
+            gap: 0;
+        }
+
+        /* Превращаем кнопку в круглую (как кнопку языка) */
+
+        .cyber-audio-btn {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%; /* Делаем круглой */
+            clip-path: none;    /* Отменяем срезанные углы для круга */
+            border: 1px solid var(--accent);
+            background: var(--bg-secondary);
+            box-shadow: 0 0 15px var(--accent-glow);
+            border-left: 1px solid var(--accent); /* Сбрасываем толстую полосу слева */
+        }
+
+        /* Скрываем текст "ЗВУК: ВЫКЛ" на мобилках, оставляем только иконку и эквалайзер */
+
+        .audio-text {
+            display: none !important;
+        }
+
+        .cyber-audio-btn i {
+            font-size: 1.4rem; /* Увеличиваем иконку для тапа */
+            margin: 0;
+        }
+
+        /* Смещаем эквалайзер чуть ниже иконки внутри круга */
+
+        .equalizer {
+            position: absolute;
+            bottom: 8px;
+            height: 8px;
+        }
+
+        .cyber-audio-btn:active {
+            transform: scale(0.9);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .projects-track {
+            display: flex;
+            overflow-x: auto;
+
+            /* Убираем дерганье при автоскролле */
+
+            scroll-behavior: smooth;
+
+            /* Магнитный эффект */
+
+            scroll-snap-type: x mandatory;
+
+            /* Скрываем стандартный скроллбар */
+
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch;
+            gap: 20px;
+            padding: 0 15px 30px;
+        }
+
+        .project-card {
+            min-width: calc(100vw - 60px);
+            scroll-snap-align: center; /* Карточка всегда центрируется */
+            transition: transform 0.5s ease;
+        }
+
+        /* Легкое уменьшение боковых карточек для фокуса на центральной */
+
+        .projects-track::-webkit-scrollbar { display: none; }
+    }
+
+    /* 18 FOOTER MOBILE OPTIMIZATION SHIFT & BOUNDS */
+
+    @media (max-width: 480px) {
+        /* 1. Создаем отступ для аудио-кнопки */
+
+        .footer-left {
+            padding-left: 60px; /* Сдвигаем блок вправо, освобождая место слева */
+            align-items: flex-start !important;
+            text-align: left !important;
+        }
+
+        /* 2. Ограничиваем ширину контента, чтобы он не упирался в кнопку языка справа */
+
+        .footer-content {
+            max-width: 100%;
+            padding-right: 60px; /* Безопасная зона справа */
+            box-sizing: border-box;
+        }
+
+        /* 3. Компактная сетка контактов, чтобы не выходила за пределы */
+
+        .contacts {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            width: fit-content;
+        }
+
+        /* 4. Фиксация положения кнопок (Sound & Lang) */
+
+        .audio-widget {
+            bottom: 20px !important;
+            left: 15px !important;
+            z-index: 1002; /* Поверх всего */
+        }
+
+        .mobile-lang-btn {
+            bottom: 20px !important; /* Опускаем на один уровень со звуком */
+            right: 15px !important;
+            z-index: 1002;
+        }
+
+        /* 5. Инфо-блок "Система в сети" */
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            white-space: nowrap;
+        }
+    }
+    /*   BIO TEXT — MULTILINE FIX */
 
     .bio-text.hacker-text {
         display: block !important;
         width: 100%;
-        margin: 10px 0;
+        margin: 15px 0;
 
         white-space: normal !important;
+        word-wrap: break-word;
+
         text-align: left;
-        line-height: 1.6;
-    }
-
-    .bio-stats-grid {
-        width: 100%;
-        gap: 10px;
-
-        grid-template-columns: 1fr !important;
+        line-height: 1.5;
     }
 
 
-    /*  20. PROJECTS / MISSION LOG */
+    /*  19 FINAL MOBILE STABILIZATION BLOCK*/
 
-    .projects-track {
-        display: flex;
-        gap: 20px;
+    @media (max-width: 768px) {
 
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
+        /* 1. SECTION CONTAINERS */
 
-        padding: 0 25px 80px !important;
+        .section {
+            padding: 40px 15px !important;
+            overflow: hidden;
+        }
+
+
+        /*  2. ABOUT / BIO*/
+        .about-card {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .bio-text.hacker-text {
+            display: block !important;
+            width: 100%;
+            margin: 10px 0;
+
+            white-space: normal !important;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .bio-stats-grid {
+            width: 100%;
+            gap: 10px;
+
+            grid-template-columns: 1fr !important;
+        }
+
+
+        /*  20. PROJECTS / MISSION LOG */
+
+        .projects-track {
+            display: flex;
+            gap: 20px;
+
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+
+            padding: 0 25px 80px !important;
+        }
+
+        .project-card {
+            display: flex;
+            flex-direction: column;
+
+            height: auto;
+            scroll-snap-align: center;
+
+            min-width: calc(100vw - 50px) !important;
+            max-width: calc(100vw - 50px) !important;
+        }
+
+        /* 21 FIX: Stable headers AI / long titles */
+
+        .project-card h3 {
+            display: flex;
+            align-items: center;
+
+            min-height: 3.5em;
+            margin: 10px 0;
+
+            white-space: normal !important;
+            line-height: 1.2;
+            position: relative;
+        }
+
+        .project-card .hacker-text {
+            display: inline-block;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+
+        /*  22. FOOTER / FLOATING UI*/
+
+        .footer-left {
+            padding-left: 70px !important;
+            text-align: left !important;
+        }
+
+        .contacts {
+            padding-right: 70px !important;
+
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+
+        .audio-widget {
+            bottom: 25px !important;
+            left: 20px !important;
+            z-index: 1200;
+        }
+
+        .mobile-lang-btn {
+            bottom: 25px !important;
+            right: 20px !important;
+
+            display: flex !important;
+            z-index: 1200;
+        }
+
+
+        /*  23. HUD CLEANUP */
+
+        .scroll-indicator,
+        .volume-control,
+        .hud-corner,
+        .hud-text {
+            display: none !important;
+        }
     }
 
-    .project-card {
-        display: flex;
-        flex-direction: column;
 
-        height: auto;
-        scroll-snap-align: center;
+    /* 24 EXTRA SMALL SCREENS */
 
-        min-width: calc(100vw - 50px) !important;
-        max-width: calc(100vw - 50px) !important;
+    @media (max-width: 400px) {
+
+        .hero-title {
+            font-size: 1.5rem;
+        }
+
+        .projects-track {
+            padding: 0 15px 80px !important;
+        }
+
+        .project-card {
+            min-width: calc(100vw - 30px) !important;
+        }
     }
-
-    /* 21 FIX: Stable headers (AI / long titles) */
-
-    .project-card h3 {
-        display: flex;
-        align-items: center;
-
-        min-height: 3.5em;
-        margin: 10px 0;
-
-        white-space: normal !important;
-        line-height: 1.2;
-        position: relative;
-    }
-
-    .project-card .hacker-text {
-        display: inline-block;
-        white-space: normal;
-        word-break: break-word;
-    }
-
-
-    /*  22. FOOTER / FLOATING UI*/
-
-    .footer-left {
-        padding-left: 70px !important;
-        text-align: left !important;
-    }
-
-    .contacts {
-        padding-right: 70px !important;
-
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
-
-    .audio-widget {
-        bottom: 25px !important;
-        left: 20px !important;
-        z-index: 1200;
-    }
-
-    .mobile-lang-btn {
-        bottom: 25px !important;
-        right: 20px !important;
-
-        display: flex !important;
-        z-index: 1200;
-    }
-
-
-    /*  23. HUD CLEANUP */
-
-    .scroll-indicator,
-    .volume-control,
-    .hud-corner,
-    .hud-text {
-        display: none !important;
-    }
-}
-
-
-/* 24 EXTRA SMALL SCREENS */
-
-@media (max-width: 400px) {
-
-    .hero-title {
-        font-size: 1.5rem;
-    }
-
-    .projects-track {
-        padding: 0 15px 80px !important;
-    }
-
-    .project-card {
-        min-width: calc(100vw - 30px) !important;
-    }
-}
- 
-/* 25 ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
-@media (max-width: 768px) {
-    /* 1. Исправление сетки футера (соцсети) */
-    .footer-hud {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-        padding: 20px;
-    }
-
-    /* Делаем кнопки соцсетей шире для удобства нажатия */
-    .footer-hud a {
-        width: 160px; /* Фиксированная ширина, чтобы не прыгало */
-        justify-content: flex-start;
-    }
-
-    /* 2. Позиционирование переключателя языка (RU) */
-    #mobile-lang-toggle {
-        position: fixed;
-        right: 20px !important;
-        bottom: 30px !important;
-        left: auto !important; /* Сбрасываем left, если был */
-        z-index: 1100;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: rgba(14, 14, 17, 0.9);
-        border: 1px solid var(--accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        box-shadow: 0 0 15px var(--accent-glow);
-    }
-
-    /* 3. Фикс аудио-виджета (чтобы не перекрывал кнопки) */
-    .audio-widget {
-        left: 20px !important;
-        bottom: 30px !important;
-        right: auto !important;
-    }
-
-    /* 4. Корректировка центральной линии (волны) */
-    .visualizer-line {
-        width: 80% !important; /* Уменьшаем ширину волны на мобилках */
-        margin: 0 auto;
-    }
-
-    /* 5. Кнопка "Смотреть геймплей" - адаптив */
-    .cyber-btn {
-        width: 100%;
-        max-width: 280px;
-        margin: 10px 0;
-    }
-}
-
-@media (max-width: 1024px) {
-    /* Контейнер футера */
-    #main-footer {
-        display: flex;
-        flex-direction: column;
-        align-items: center; 
-        text-align: center;
-        padding-bottom: 120px;
-    }
-
-    /* 1. Смещение статуса "Система в сети" на 10px влево */
-    .status-badge, 
-    [class*="status"] { 
-        position: relative;
-        left: -10px; /* Прямое смещение влево */
-        margin: 0 auto 15px auto !important;
-        display: inline-flex;
-        justify-content: center;
-    }
-
-    /* 2. Смещение копирайта на 10px влево */
-    .copyright,
-    #main-footer p {
-        position: relative;
-        left: -10px; /* Прямое смещение влево */
-        width: 100%;
-        display: block;
-        margin: 10px 0 !important;
-        text-align: center !important;
-    }
-
-    /* 3. Центрирование списка соцсетей (без смещения, для баланса) */
-    .footer-hud {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 30px;
-    }
-
-    .footer-hud a {
-        width: 200px;
-        justify-content: center;
-    }
-}
-
-@media (max-width: 1024px) {
-    .audio-widget {
-        position: fixed !important;
-        left: 5px !important;  
-        bottom: 5px !important; 
-        width: 65px; height: 65px;
-        z-index: 1200;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    button.cyber-audio-btn {
-        width: 55px !important; 
-        height: 55px !important;
-        background: rgba(14, 14, 17, 0.95) !important;
-        border: 1px solid var(--accent) !important;
-        clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        transition: all 0.3s ease;
-    }
-
     
-    button.cyber-audio-btn.playing {
-        animation: music-jump-mobile 1.5s infinite ease-in-out;
+    /* 25 ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
+    
+    @media (max-width: 768px) {
+        
+        /* 1. Исправление сетки футера (соцсети) */
+        
+        .footer-hud {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        /* Делаем кнопки соцсетей шире для удобства нажатия */
+        
+        .footer-hud a {
+            width: 160px; /* Фиксированная ширина, чтобы не прыгало */
+            justify-content: flex-start;
+        }
+
+        /* 2. Позиционирование переключателя языка (RU) */
+      
+        #mobile-lang-toggle {
+            position: fixed;
+            right: 20px !important;
+            bottom: 30px !important;
+            left: auto !important; /* Сбрасываем left */
+            z-index: 1100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(14, 14, 17, 0.9);
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* 3. Фикс аудио-виджета (чтобы не перекрывал кнопки) */
+      
+        .audio-widget {
+            left: 20px !important;
+            bottom: 30px !important;
+            right: auto !important;
+        }
+
+        /* 4. Корректировка центральной линии волны */
+     
+        .visualizer-line {
+            width: 80% !important; /* Уменьшаем ширину волны на мобилках */
+            margin: 0 auto;
+        }
+
+        /* 5. Кнопка "Смотреть геймплей" - адаптив */
+      
+        .cyber-btn {
+            width: 100%;
+            max-width: 280px;
+            margin: 10px 0;
+        }
     }
 
-    .audio-icon-box i {
-        display: block !important;
-        font-size: 1.3rem !important;
-        color: var(--accent);
-        opacity: 0.6;
-        transform: none !important; 
+    @media (max-width: 1024px) {
+      
+        /* Контейнер футера */
+      
+        #main-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            text-align: center;
+            padding-bottom: 120px;
+        }
+
+        /* 1. Смещение статуса "Система в сети" на 10px влево */
+      
+        .status-badge, 
+        [class*="status"] { 
+            position: relative;
+            left: -10px; /* Прямое смещение влево */
+            margin: 0 auto 15px auto !important;
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        /* 2. Смещение копирайта на 10px влево */
+        
+        .copyright,
+        #main-footer p {
+            position: relative;
+            left: -10px; /* Прямое смещение влево */
+            width: 100%;
+            display: block;
+            margin: 10px 0 !important;
+            text-align: center !important;
+        }
+
+        /* 3. Центрирование списка соцсетей без смещения, для баланса */
+        
+        .footer-hud {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .footer-hud a {
+            width: 200px;
+            justify-content: center;
+        }
     }
 
-    button.cyber-audio-btn.playing .audio-icon-box i {
-        opacity: 1;
-        filter: drop-shadow(0 0 5px var(--accent));
+    @media (max-width: 1024px) {
+        .audio-widget {
+            position: fixed !important;
+            left: 5px !important;  
+            bottom: 5px !important; 
+            width: 65px; height: 65px;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button.cyber-audio-btn {
+            width: 55px !important; 
+            height: 55px !important;
+            background: rgba(14, 14, 17, 0.95) !important;
+            border: 1px solid var(--accent) !important;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        
+        button.cyber-audio-btn.playing {
+            animation: music-jump-mobile 1.5s infinite ease-in-out;
+        }
+
+        .audio-icon-box i {
+            display: block !important;
+            font-size: 1.3rem !important;
+            color: var(--accent);
+            opacity: 0.6;
+            transform: none !important; 
+        }
+
+        button.cyber-audio-btn.playing .audio-icon-box i {
+            opacity: 1;
+            filter: drop-shadow(0 0 5px var(--accent));
+        }
+
+        #mobile-lang-toggle {
+            position: fixed !important;
+            right: 5px !important; 
+            bottom: 5px !important;
+            width: 60px; height: 60px;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(14, 14, 17, 0.95);
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+
+        }
     }
 
-    #mobile-lang-toggle {
-        position: fixed !important;
-        right: 5px !important; 
-        bottom: 5px !important;
-        width: 60px; height: 60px;
-        z-index: 1200;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background: rgba(14, 14, 17, 0.95);
-        border: 1px solid var(--accent);
-        box-shadow: 0 0 15px var(--accent-glow);
+    @keyframes music-jump-mobile {
+        0%, 100% { 
+            transform: translateY(0) scale(1); 
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        50% { 
+            transform: translateY(-8px) scale(1.05); 
+            box-shadow: 0 10px 20px var(--accent-glow);
+        }
+    }
+        /* ОТКЛЮЧЕНИЕ КАСТОМНОГО КУКСОРА В ПЛЕЕРЕ */
+      
+        body.video-mode {
+        cursor: auto !important; 
+        }
 
-    }
-}
+        body.video-mode #cursor {
+        display: none !important; 
+        opacity: 0;
+        }
 
-@keyframes music-jump-mobile {
-    0%, 100% { 
-        transform: translateY(0) scale(1); 
-        box-shadow: 0 0 10px var(--accent-glow);
-    }
-    50% { 
-        transform: translateY(-8px) scale(1.05); 
-        box-shadow: 0 10px 20px var(--accent-glow);
-    }
-}
-    /* --- ОТКЛЮЧЕНИЕ КАСТОМНОГО КУКСОРА В ПЛЕЕРЕ --- */
-    body.video-mode {
-    cursor: auto !important; /* Возвращаем системную стрелку */
+        .video-modal {
+        cursor: auto !important;
+        }
+
+    /* DESKTOP: UNIFIED BUTTON STYLES EQUAL SIZE */
+
+    @media (min-width: 1025px) {
+        
+        /* 1. Контейнер виджета: выстраиваем в колонку друг под другом */
+        
+        .audio-widget {
+            display: flex;
+            flex-direction: column; /* Вертикальный стек */
+            align-items: flex-start;
+            gap: 12px; /* Отступ между кнопками */
+        }
+
+        /* 2. Общий стандарт для ОБЕИХ кнопок */
+       
+        button.cyber-audio-btn {
+            width: 200px !important; /* Фиксированная ширина для идеального выравнивания */
+            height: 48px !important; /* Одинаковая высота */
+            margin: 0 !important;    /* Убираем лишние отступы */
+            padding: 0 !important;
+            
+            /* Возвращаем общий стиль */
+            
+            background: rgba(14, 14, 17, 0.95) !important;
+            border: 1px solid rgba(108, 242, 194, 0.3) !important;
+            border-left: 4px solid var(--accent) !important;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 70%, 92% 100%, 0% 100%) !important;
+            opacity: 1 !important;
+        }
+
+        /* 3. Выравнивание иконок левая часть кнопки */
+       
+        .audio-icon-box {
+            width: 50px !important; /* Фиксированная ширина бокса иконки */
+            height: 100% !important;
+            border-right: 1px solid rgba(108, 242, 194, 0.1) !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; 
+        }
+
+        .audio-icon-box i {
+            font-size: 1.1rem !important;
+        }
+
+        /* 4. Выравнивание текста (правая часть кнопки) */
+      
+        .audio-info-box {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Текст слева */
+            padding-left: 15px !important;
+            padding-right: 10px !important;
+            height: 100%;
+        }
+
+        /* 5. Убираем специфичные стили, которые делали SFX маленькой */
+       
+        .sfx-btn {
+            height: 48px !important;
+            opacity: 1 !important;
+        }
+        
+        /* 6. Ползунок громкости позиционируем относительно музыки */
+        
+        .volume-control {
+            position: absolute;
+            left: 100%; /* Справа от кнопок */
+            bottom: 0;  /* На уровне нижней кнопки */
+            margin-left: 15px;
+           
+            /* Остальные стили слайдера подтянутся из основного CSS */
+        }
     }
 
-    body.video-mode #cursor {
-    display: none !important; /* Скрываем кастомный прицел */
-    opacity: 0;
-    }
+    /* MOBILE: ROUND BUTTONS + TWITCH ANIMATION SFX & MUSIC */
 
-    /* Убедимся, что внутри плеера курсор точно стандартный */
-    .video-modal {
-    cursor: auto !important;
-    }
+    @media (max-width: 1024px) {
+        
+        /* 1. Контейнер виджета */
+      
+        .audio-widget {
+            left: 20px !important;
+            bottom: 30px !important;
+            transform: none !important;
+            width: auto !important;
+            height: auto !important;
+            display: flex !important;
+            flex-direction: column-reverse !important; /* Музыка снизу, SFX сверху */
+            gap: 15px !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
+        }
 
-        /*  СТИЛИ ДЛЯ КНОПКИ SFX */
+        .audio-widget::after { display: none !important; }
 
-    /* Дополнительный класс для кнопки SFX, чтобы она отличалась */
-    .cyber-audio-btn.sfx-btn {
-    margin-right: 15px; 
-    padding: 0 15px;  
-    min-width: auto;    
-    }
+        /* 2. Общий стиль кнопок */
+       
+        button.cyber-audio-btn {
+            width: 60px !important;
+            height: 60px !important;
+            min-width: 60px !important;
+            border-radius: 50% !important;
+            clip-path: none !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: rgba(14, 14, 17, 0.95) !important;
+            border: 2px solid var(--accent) !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5) !important;
+            transition: all 0.3s ease;
+        }
 
-    /* Когда SFX выключен (класс .muted добавляется JS-ом) */
-    .cyber-audio-btn.muted {
-    border-color: var(--muted);
-    opacity: 0.6;
-    }
+        /* 3. Кнопка SFX */
+        
+        .sfx-btn { display: flex !important; }
 
-    .cyber-audio-btn.muted .audio-icon-box i {
-    color: var(--muted);
-    }
+        /* Анимация SFX  */
+        
+        button.cyber-audio-btn.sfx-btn:not(.muted) {
+            animation: glitch-twitch 4s infinite linear; /* Только дерганье */
+            box-shadow: 0 0 15px var(--accent-glow), 0 5px 15px rgba(0,0,0,0.5) !important;
+            background: rgba(var(--accent-rgb), 0.1) !important;
+        }
 
-    .cyber-audio-btn.muted .audio-text {
-    color: var(--muted);
-    text-shadow: none;
-    }
+        /* 4. Кнопка МУЗЫКИ  */
+        
+        button.cyber-audio-btn.playing {
+          
+            /* ОБЪЕДИНЯЕМ: Пульсация + Дерганье  */
+          
+            animation: pulse-ring 2s infinite, glitch-twitch 4s infinite linear;
+            border-color: #fff !important;
+            box-shadow: 0 0 20px var(--accent-glow) !important;
+            background: rgba(var(--accent-rgb), 0.15) !important;
+        }
 
-    /* При наведении на выключенную кнопку - подсвечиваем */
-    .cyber-audio-btn.muted:hover {
-    opacity: 1;
-    border-color: #fff;
-    }
-    .cyber-audio-btn.muted:hover .audio-icon-box i,
-    .cyber-audio-btn.muted:hover .audio-text {
-    color: #fff;
-    }
+        /* 5. Иконки */
+       
+        .audio-icon-box {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
 
-    /* Выравнивание контейнера виджета (если еще не настроено) */
-    .audio-widget {
-    display: flex;
-    align-items: center;
-   
+        .audio-icon-box i {
+            font-size: 1.6rem !important;
+            opacity: 1 !important;
+            color: var(--accent);
+        }
+
+        /* 6. Скрываем лишнее */
+     
+        .audio-info-box, .volume-control, .burst-container {
+            display: none !important;
+        }
+
+        /* 7. Состояние "Выключено" для обеих кнопок */
+       
+        button.cyber-audio-btn.muted,
+        button.cyber-audio-btn:not(.playing):not(.sfx-btn) { 
+          
+            /* :not(.playing) нужен чтобы кнопка музыки была тусклой когда на паузе */
+          
+            border-color: var(--muted) !important;
+            background: rgba(0,0,0,0.8) !important;
+            box-shadow: none !important;
+            animation: none !important;
+        }
+        
+        button.cyber-audio-btn.muted i,
+        button.cyber-audio-btn:not(.playing):not(.sfx-btn) i {
+            color: var(--muted) !important;
+            opacity: 0.5 !important;
+        }
+
+        /*  КЕЙФРЕЙМЫ */
+
+        /* 1. Пульсация  */
+       
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(108, 242, 194, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(108, 242, 194, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(108, 242, 194, 0); }
+        }
+
+        /* 2. Глич */
+        
+        @keyframes glitch-twitch {
+            0% { transform: translate(0, 0); }
+            1% { transform: translate(-2px, 1px); }
+            2% { transform: translate(1px, -2px); }
+            3% { transform: translate(-1px, 1px); }
+            4% { transform: translate(2px, -1px); }
+            5% { transform: translate(0, 0); }
+            100% { transform: translate(0, 0); }
+        }
     }
