@@ -1,6 +1,6 @@
 /**
- * GAMEDEV PORTFOLIO CORE ENGINE v2.5
- * Sections: 1-11
+ * GAMEDEV PORTFOLIO CORE ENGINE v3.5
+ * All Systems: Video, Audio, SFX Toggle, Tilt, Custom Cursor, Video Mode
  */
 
 // 1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ПЕРЕМЕННЫЕ
@@ -8,7 +8,7 @@ const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
 const isMobile = () => window.innerWidth <= 1024;
 let currentGlobalLang = 'ru'; 
 
-// 2. SMOOTH SCROLL (Плавная навигация)
+// 2. SMOOTH SCROLL
 document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', e => {
         e.preventDefault();
@@ -24,7 +24,7 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     });
 });
 
-// 3. SCROLL ANIMATIONS (Прогресс-бары и счетчики)
+// 3. SCROLL ANIMATIONS
 function animateCounter(el) {
     const targetText = el.getAttribute('data-target') || el.textContent; 
     const target = parseInt(targetText, 10); 
@@ -68,66 +68,26 @@ const sectionObserver = new IntersectionObserver(entries => {
 
 document.querySelectorAll('.section').forEach(s => sectionObserver.observe(s));
 
-// Полоса прокрутки сверху
-window.addEventListener('scroll', () => {
-    const progressBar = document.querySelector('.scroll-progress');
-    const scrollTop = window.scrollY;
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    if (progressBar && maxScroll > 0) {
-        progressBar.style.width = `${(scrollTop / maxScroll) * 100}%`;
-    }
-});
-
-// 4. VIDEO MODAL (Модальное окно видео)
-const modal = document.getElementById('videoModal');
-const iframe = document.getElementById('videoFrame');
-const closeBtn = document.querySelector('.video-close');
-
-document.querySelectorAll('[data-video]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const videoSrc = btn.getAttribute('data-video');
-        if (modal && iframe && videoSrc) {
-            iframe.src = videoSrc.includes('?') ? `${videoSrc}&autoplay=1` : `${videoSrc}?autoplay=1`;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    });
-});
-
-if(closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        if(modal) modal.classList.remove('active');
-        if(iframe) iframe.src = '';
-        document.body.style.overflow = '';
-    });
-}
-
-// 5. HACKER TEXT: STABLE DECRYPTION
+// 5. HACKER TEXT
 document.querySelectorAll(".hacker-text").forEach(element => {
     let interval = null;
     if (element.classList.contains('audio-text')) return;
 
     const runScramble = (text) => {
         if (!text) return; 
-
         const isNoScramble = element.classList.contains('no-scramble') || element.closest('.no-scramble');
-
         if (isNoScramble) {
             element.innerText = text;
             return;
         }
-
         let iterations = 0;
         element.classList.add('animating');
         clearInterval(interval);
-
         interval = setInterval(() => {
             element.innerText = text.split("").map((letter, index) => {
                 if (index < iterations) return text[index];
                 return charset[Math.floor(Math.random() * charset.length)];
             }).join("");
-
             if (iterations >= text.length) {
                 clearInterval(interval);
                 element.classList.remove('animating');
@@ -150,30 +110,24 @@ document.querySelectorAll(".hacker-text").forEach(element => {
     });
 });
 
-// 6. GLOBAL MOBILE TRANSLATION (Глобальный переключатель языков)
+// 6. GLOBAL MOBILE TRANSLATION
 const mobileLangBtn = document.getElementById('mobile-lang-toggle');
-
 if (mobileLangBtn) {
     mobileLangBtn.addEventListener('click', () => {
         currentGlobalLang = (currentGlobalLang === 'ru') ? 'en' : 'ru';
         mobileLangBtn.innerText = currentGlobalLang.toUpperCase();
-
         document.querySelectorAll('.hacker-text').forEach(el => {
             if (el.classList.contains('audio-text')) return;
             const newText = el.getAttribute(`data-${currentGlobalLang}`);
-            if (newText) {
-                el.innerText = newText;
-            }
+            if (newText) el.innerText = newText;
         });
-
         if (typeof updateAudioLabel === "function") updateAudioLabel();
-
         mobileLangBtn.style.transform = 'scale(0.9)';
         setTimeout(() => mobileLangBtn.style.transform = 'scale(1)', 100);
     });
 }
 
-// 7. PROJECT SLIDER: AUTO-SCROLL & NAVIGATION (Слайдер проектов)
+// 7. PROJECT SLIDER
 const track = document.getElementById('projectsTrack');
 const btnLeft = document.getElementById('slideLeft');
 const btnRight = document.getElementById('slideRight');
@@ -183,48 +137,54 @@ if (track) {
         const card = track.querySelector('.project-card');
         return isMobile() ? track.offsetWidth : (card ? card.offsetWidth + 30 : 350);
     };
-
     if (btnLeft && btnRight) {
-        btnLeft.addEventListener('click', () => {
-            track.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
-        });
-        btnRight.addEventListener('click', () => {
-            track.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
-        });
+        btnLeft.addEventListener('click', () => track.scrollBy({ left: -getScrollStep(), behavior: 'smooth' }));
+        btnRight.addEventListener('click', () => track.scrollBy({ left: getScrollStep(), behavior: 'smooth' }));
     }
 }
 
-// 8. AUDIO SYSTEM (Синхронизация с пульсацией фона)
+// 8. AUDIO SYSTEM (MUSIC)
 const audioBtn = document.getElementById('audioToggle');
 const bgMusic = document.getElementById('bgMusic');
 const volumeSlider = document.getElementById('volumeSlider');
 const audioTextEl = audioBtn?.querySelector('.audio-text');
+const volumeDisplay = document.getElementById('volumeDisplay');
+const audioIcon = document.getElementById('audioIcon');
 
 function updateAudioLabel() {
     if (!audioBtn || !bgMusic || !audioTextEl) return;
     const isPlaying = !bgMusic.paused;
     const state = isPlaying ? 'on' : 'off';
     const newText = audioTextEl.getAttribute(`data-${currentGlobalLang}-${state}`);
-    if (newText) {
-        audioTextEl.innerText = newText;
+    if (newText) audioTextEl.innerText = newText;
+}
+
+// Helper: Pause music from other scripts
+function pauseBgMusicForce() {
+    if (bgMusic && !bgMusic.paused) {
+        bgMusic.pause();
+        if(audioBtn) audioBtn.classList.remove('playing');
+        document.body.classList.remove('music-playing');
+        updateAudioLabel();
     }
 }
 
 if (audioBtn && bgMusic && volumeSlider) {
     bgMusic.volume = volumeSlider.value;
     volumeSlider.style.setProperty('--value', `${volumeSlider.value * 100}%`);
+    if(volumeDisplay) volumeDisplay.innerText = Math.round(volumeSlider.value * 100) + '%';
 
     audioBtn.addEventListener('click', () => {
         if (bgMusic.paused) {
             bgMusic.play().then(() => {
                 audioBtn.classList.add('playing');
-                document.body.classList.add('music-playing'); // Активация быстрой пульсации фона
+                document.body.classList.add('music-playing');
                 updateAudioLabel();
             }).catch(e => console.log("Autoplay blocked"));
         } else {
             bgMusic.pause();
             audioBtn.classList.remove('playing');
-            document.body.classList.remove('music-playing'); // Возврат к спокойному ритму фона
+            document.body.classList.remove('music-playing');
             updateAudioLabel();
         }
     });
@@ -233,10 +193,23 @@ if (audioBtn && bgMusic && volumeSlider) {
         const val = e.target.value;
         bgMusic.volume = val;
         e.target.style.setProperty('--value', `${val * 100}%`);
+        if (volumeDisplay) volumeDisplay.innerText = Math.round(val * 100) + '%';
+        if (audioIcon) {
+            if (val == 0) {
+                audioIcon.className = 'ri-volume-mute-line';
+                audioIcon.style.opacity = '0.5';
+            } else if (val < 0.5) {
+                audioIcon.className = 'ri-volume-down-line';
+                audioIcon.style.opacity = '0.8';
+            } else {
+                audioIcon.className = 'ri-volume-up-line';
+                audioIcon.style.opacity = '1';
+            }
+        }
     });
 }
 
-// 9. FOOTER RIPPLES & HQ HINT (Эффекты футера и подсказка)
+// 9. FOOTER RIPPLES
 const footer = document.getElementById('main-footer');
 if (footer) {
     footer.addEventListener('mousemove', (e) => {
@@ -246,7 +219,6 @@ if (footer) {
             footer.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
         }
     });
-    
     footer.addEventListener('click', (e) => {
         const container = footer.querySelector('.footer-hud'); 
         if (!container) return; 
@@ -260,7 +232,7 @@ if (footer) {
     });
 }
 
-// Интерактивный фон: обновление координат курсора
+// Interactive BG
 window.addEventListener('mousemove', (e) => {
     if (!isMobile()) {
         document.body.style.setProperty('--cursor-x', `${e.clientX}px`);
@@ -268,7 +240,7 @@ window.addEventListener('mousemove', (e) => {
     }
 });
 
-// Системная подсказка при загрузке
+// System Hint
 window.addEventListener('DOMContentLoaded', () => {
     const hint = document.createElement('div');
     hint.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);"></span><p>SYSTEM: Use <b>EN</b> button to translate</p></div>`;
@@ -285,7 +257,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 9000);
 });
 
-// 10. FOOTER BOUNDS STABILIZER (Стабилизация мобильного футера)
+// 10. FOOTER STABILIZER
 function stabilizeFooter() {
     if (!isMobile()) return;
     const footer = document.getElementById('main-footer');
@@ -299,9 +271,8 @@ function stabilizeFooter() {
 window.addEventListener('scroll', stabilizeFooter);
 window.addEventListener('resize', stabilizeFooter);
 
-// 11. RANDOM AVATAR GLITCH (Случайные помехи на аватаре)
+// 11. AVATAR GLITCH
 const avatarWrapper = document.querySelector('.profile-frame');
-
 if (avatarWrapper) {
     setInterval(() => {
         if (Math.random() > 0.95) {
@@ -313,18 +284,472 @@ if (avatarWrapper) {
     }, 4000);
 }
 
-// 12. INTERACTIVE FLASHLIGHT EFFECT
-// Обновление координат фонарика и курсора
+// 12. FLASHLIGHT
 window.addEventListener('mousemove', (e) => {
     if (!isMobile()) {
         const x = e.clientX + 'px';
         const y = e.clientY + 'px';
-        
         document.documentElement.style.setProperty('--flashlight-x', x);
         document.documentElement.style.setProperty('--flashlight-y', y);
-        
-        // Для обратной совместимости с вашими старыми стилями
-        document.body.style.setProperty('--cursor-x', x);
-        document.body.style.setProperty('--cursor-y', y);
     }
+});
+
+// 13. AUTO-HIDE HUD
+const mainFooter1 = document.getElementById('main-footer');
+if (mainFooter1) {
+    const hudObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                document.body.classList.add('hud-hidden');
+            } else {
+                document.body.classList.remove('hud-hidden');
+            }
+        });
+    }, { threshold: 0.1 });
+    hudObserver.observe(mainFooter1);
+}
+
+
+// 14. CUSTOM VIDEO PLAYER CONTROLS
+
+const customPlayer = document.getElementById('customPlayer');
+const mainVideo = document.getElementById('mainVideo');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const bigPlayBtn = document.getElementById('bigPlayBtn');
+const videoProgress = document.getElementById('videoProgress');
+const videoVolume = document.getElementById('videoVolume');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const feedbackEl = document.getElementById('keyFeedback');
+// Settings Elements
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsMenu = document.getElementById('settingsMenu');
+const speedOptions = document.querySelectorAll('#speedOptions button');
+const qualityOptions = document.querySelectorAll('#qualityOptions button');
+
+if (mainVideo) {
+    // --- Helper Functions ---
+    const formatTime = (s) => {
+        const mins = Math.floor(s / 60);
+        const secs = Math.floor(s % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const showFeedback = (iconClass) => {
+        if (!feedbackEl) return;
+        feedbackEl.innerHTML = `<i class="${iconClass}"></i>`;
+        feedbackEl.classList.remove('animate');
+        void feedbackEl.offsetWidth; // Force Reflow
+        feedbackEl.classList.add('animate');
+    };
+
+    const togglePlay = () => {
+        if (mainVideo.paused) {
+            pauseBgMusicForce(); // Stop music when video starts
+            mainVideo.play();
+            customPlayer.classList.add('playing');
+            customPlayer.classList.remove('paused'); 
+            playPauseBtn.innerHTML = '<i class="ri-pause-fill"></i>';
+        } else {
+            mainVideo.pause();
+            customPlayer.classList.remove('playing');
+            customPlayer.classList.add('paused');
+            playPauseBtn.innerHTML = '<i class="ri-play-fill"></i>';
+        }
+    };
+
+    const updateVolumeIcon = (val) => {
+        const icon = document.getElementById('videoVolIcon');
+        if (!icon) return;
+        if (val == 0) icon.className = 'ri-volume-mute-line';
+        else if (val < 0.5) icon.className = 'ri-volume-down-line';
+        else icon.className = 'ri-volume-up-line';
+    };
+
+    // --- Basic Controls Events ---
+    if(bigPlayBtn) bigPlayBtn.addEventListener('click', togglePlay);
+    if(playPauseBtn) playPauseBtn.addEventListener('click', togglePlay);
+    
+    // Clicking video toggles play/pause or closes settings
+    mainVideo.addEventListener('click', (e) => {
+        if (settingsMenu && settingsMenu.classList.contains('active')) {
+            settingsMenu.classList.remove('active');
+            settingsBtn.classList.remove('active');
+        } else {
+            togglePlay();
+        }
+    });
+
+    // --- Settings Menu Logic ---
+    if (settingsBtn && settingsMenu) {
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('active');
+            settingsBtn.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (settingsMenu.classList.contains('active') && !settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                settingsMenu.classList.remove('active');
+                settingsBtn.classList.remove('active');
+            }
+        });
+
+        speedOptions.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                speedOptions.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const speed = parseFloat(btn.getAttribute('data-speed'));
+                mainVideo.playbackRate = speed;
+            });
+        });
+
+        qualityOptions.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                qualityOptions.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    }
+
+    // --- Keyboard Controls ---
+    window.addEventListener('keydown', (e) => {
+        const videoModal = document.getElementById('videoModal');
+        if (!videoModal || !videoModal.classList.contains('active')) return;
+
+        if (e.code === 'Space') {
+            e.preventDefault();
+            togglePlay();
+            showFeedback(mainVideo.paused ? 'ri-pause-fill' : 'ri-play-fill');
+        }
+        if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            mainVideo.currentTime = Math.max(0, mainVideo.currentTime - 5);
+            showFeedback('ri-rewind-fill');
+        }
+        if (e.code === 'ArrowRight') {
+            e.preventDefault();
+            mainVideo.currentTime = Math.min(mainVideo.duration, mainVideo.currentTime + 5);
+            showFeedback('ri-speed-fill');
+        }
+    });
+
+    // --- Progress & Time ---
+    mainVideo.addEventListener('timeupdate', () => {
+        const pct = (mainVideo.currentTime / mainVideo.duration) * 100;
+        if(videoProgress) {
+            videoProgress.value = pct;
+            videoProgress.style.setProperty('--seek-position', `${pct}%`);
+        }
+        if(currentTimeEl) currentTimeEl.innerText = formatTime(mainVideo.currentTime);
+    });
+
+    mainVideo.addEventListener('loadedmetadata', () => {
+        if(durationEl) durationEl.innerText = formatTime(mainVideo.duration);
+    });
+
+    if(videoProgress) {
+        videoProgress.addEventListener('input', (e) => {
+            const time = (e.target.value / 100) * mainVideo.duration;
+            mainVideo.currentTime = time;
+        });
+    }
+
+    // --- Volume ---
+    if(videoVolume) {
+        const startVal = videoVolume.value;
+        videoVolume.style.setProperty('--vol-position', `${startVal * 100}%`);
+        updateVolumeIcon(startVal);
+
+        videoVolume.addEventListener('input', (e) => {
+            const val = e.target.value;
+            mainVideo.volume = val;
+            e.target.style.setProperty('--vol-position', `${val * 100}%`);
+            updateVolumeIcon(val);
+        });
+
+        // Volume Icon Mute Toggle
+        const volIconBtn = document.getElementById('videoVolIcon');
+        if (volIconBtn) {
+            let lastVolume = 1; 
+            volIconBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (mainVideo.volume > 0) {
+                    lastVolume = mainVideo.volume;
+                    mainVideo.volume = 0;
+                    videoVolume.value = 0;
+                    videoVolume.style.setProperty('--vol-position', '0%');
+                    updateVolumeIcon(0);
+                } else {
+                    mainVideo.volume = lastVolume;
+                    videoVolume.value = lastVolume;
+                    videoVolume.style.setProperty('--vol-position', `${lastVolume * 100}%`);
+                    updateVolumeIcon(lastVolume);
+                }
+            });
+        }
+    }
+
+    // --- Fullscreen ---
+    if(fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) customPlayer.requestFullscreen();
+            else document.exitFullscreen();
+        });
+    }
+}
+
+
+// 15. MODAL OPEN/CLOSE LOGIC
+
+const videoModal = document.getElementById('videoModal');
+const videoClose = document.querySelector('.video-close');
+const videoOverlay = document.querySelector('.video-overlay');
+const videoBtns = document.querySelectorAll('[data-video]');
+
+function openModal(e) {
+    e.preventDefault();
+    if (videoModal) {
+        videoModal.classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+        
+        // Включаем режим видео (стандартный курсор)
+        document.body.classList.add('video-mode');
+        
+        pauseBgMusicForce();
+
+        setTimeout(() => {
+            if (customPlayer) customPlayer.classList.add('initialized');
+            setTimeout(() => {
+                if (mainVideo) {
+                    mainVideo.play().then(() => {
+                        customPlayer.classList.add('playing');
+                        if (playPauseBtn) playPauseBtn.innerHTML = '<i class="ri-pause-fill"></i>';
+                    }).catch(err => {
+                        customPlayer.classList.remove('playing');
+                        customPlayer.classList.add('paused');
+                    });
+                }
+            }, 300);
+        }, 500); 
+    }
+}
+
+function closeModal() {
+    if (videoModal) {
+        videoModal.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Выключаем режим видео (кастомный курсор)
+        document.body.classList.remove('video-mode');
+
+        if (customPlayer) {
+            customPlayer.classList.remove('initialized');
+            customPlayer.classList.remove('playing');
+            customPlayer.classList.remove('paused');
+        }
+        if (settingsMenu) settingsMenu.classList.remove('active');
+        if (settingsBtn) settingsBtn.classList.remove('active');
+
+        if (mainVideo) {
+            mainVideo.pause();
+            mainVideo.currentTime = 0;
+            mainVideo.playbackRate = 1; // Reset Speed
+            if (playPauseBtn) playPauseBtn.innerHTML = '<i class="ri-play-fill"></i>';
+        }
+
+        // Reset Settings UI
+        const spdBtns = document.querySelectorAll('#speedOptions button');
+        if (spdBtns.length > 0) {
+            spdBtns.forEach(b => b.classList.remove('active'));
+            const normalBtn = document.querySelector('#speedOptions button[data-speed="1"]');
+            if (normalBtn) normalBtn.classList.add('active');
+        }
+    }
+}
+
+videoBtns.forEach(btn => btn.addEventListener('click', openModal));
+if (videoClose) videoClose.addEventListener('click', closeModal);
+if (videoOverlay) videoOverlay.addEventListener('click', closeModal);
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && videoModal && videoModal.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// 16. UI SOUND FX SYSTEM (WITH TOGGLE & MOBILE FIX)
+
+const sfxConfig = {
+    enabled: true, 
+    volume: 0.15,
+    files: {
+        hover: 'assets/sounds/hover.mp3', 
+        click: 'assets/sounds/click.mp3'
+    }
+};
+
+const uiSounds = {
+    hover: new Audio(sfxConfig.files.hover),
+    click: new Audio(sfxConfig.files.click)
+};
+
+Object.values(uiSounds).forEach(sound => {
+    sound.volume = sfxConfig.volume;
+    sound.load(); 
+});
+
+// --- SFX Toggle Button Logic ---
+const sfxToggleBtn = document.getElementById('sfxToggle');
+if (sfxToggleBtn) {
+    const sfxIcon = sfxToggleBtn.querySelector('i');
+    const sfxLabel = sfxToggleBtn.querySelector('span');
+
+    sfxToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sfxConfig.enabled = !sfxConfig.enabled; 
+
+        if (sfxConfig.enabled) {
+            sfxToggleBtn.classList.remove('muted');
+            if(sfxIcon) sfxIcon.className = 'ri-notification-3-fill';
+            if(sfxLabel) sfxLabel.innerText = 'SFX: ON';
+            playSfx('click'); 
+        } else {
+            sfxToggleBtn.classList.add('muted');
+            if(sfxIcon) sfxIcon.className = 'ri-notification-off-fill';
+            if(sfxLabel) sfxLabel.innerText = 'SFX: OFF';
+        }
+    });
+}
+
+// Unlock audio context for Mobile
+let audioUnlocked = false;
+function unlockAudioContext() {
+    if (audioUnlocked) return;
+    Object.values(uiSounds).forEach(sound => {
+        sound.muted = true;
+        const p = sound.play();
+        if (p !== undefined) {
+            p.then(() => {
+                sound.pause();
+                sound.currentTime = 0;
+                sound.muted = false;
+            }).catch(() => {});
+        }
+    });
+    audioUnlocked = true;
+    document.removeEventListener('touchstart', unlockAudioContext);
+    document.removeEventListener('click', unlockAudioContext);
+}
+document.addEventListener('touchstart', unlockAudioContext, { passive: true });
+document.addEventListener('click', unlockAudioContext);
+
+function playSfx(type) {
+    if (!sfxConfig.enabled) return;
+    const sound = uiSounds[type];
+    if (sound) {
+        sound.currentTime = 0; 
+        if (isMobile()) {
+             sound.play().catch(e => {});
+        } else {
+             const clone = sound.cloneNode();
+             clone.volume = sfxConfig.volume;
+             clone.play().catch(e => {});
+        }
+    }
+}
+
+function initSfx() {
+    // Ignore the toggle button itself to control it manually
+    const interactables = document.querySelectorAll(
+        'button:not(#sfxToggle), a, input[type="range"], .project-card, .video-volume-box i'
+    );
+
+    interactables.forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            if (!isMobile()) playSfx('hover');
+        });
+        el.addEventListener('pointerdown', () => playSfx('click'));
+    });
+}
+document.addEventListener('DOMContentLoaded', initSfx);
+
+// 17. 3D TILT EFFECT
+
+const tiltCards = document.querySelectorAll('.project-card');
+
+tiltCards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        if (isMobile()) return; 
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -10; 
+        const rotateY = ((x - centerX) / centerX) * 10;   
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        card.style.transition = 'transform 0.5s ease'; 
+    });
+
+    card.addEventListener('mouseenter', () => {
+        card.style.transition = 'none';
+    });
+});
+
+
+// 18. TACTICAL CURSOR
+
+const cursorDot = document.querySelector('.cursor-dot');
+const cursorCircle = document.querySelector('.cursor-circle');
+
+let mouseX = -100;
+let mouseY = -100;
+let circleX = -100;
+let circleY = -100;
+
+window.addEventListener('mousemove', (e) => {
+    if (isMobile()) return;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (cursorDot) {
+        cursorDot.style.left = `${mouseX}px`;
+        cursorDot.style.top = `${mouseY}px`;
+    }
+});
+
+function animateCursor() {
+    if (isMobile()) return;
+    const speed = 0.15;
+    circleX += (mouseX - circleX) * speed;
+    circleY += (mouseY - circleY) * speed;
+    if (cursorCircle) {
+        cursorCircle.style.left = `${circleX}px`;
+        cursorCircle.style.top = `${circleY}px`;
+    }
+    requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+// Cursor Hover Effects
+const hoverElements = document.querySelectorAll('a, button, .project-card, input, .video-volume-box, .hud-btn');
+hoverElements.forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+// Hide cursor when leaving window
+document.addEventListener('mouseleave', () => {
+    if (cursorDot) cursorDot.style.opacity = '0';
+    if (cursorCircle) cursorCircle.style.opacity = '0';
+});
+document.addEventListener('mouseenter', () => {
+    if (cursorDot) cursorDot.style.opacity = '1';
+    if (cursorCircle) cursorCircle.style.opacity = '1';
 });
