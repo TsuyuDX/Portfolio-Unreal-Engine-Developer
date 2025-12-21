@@ -47,7 +47,11 @@
   </style>
 </head>
 <body>
-<body>
+  <div id="cursor">
+    <div class="cursor-dot"></div>
+    <div class="cursor-circle"></div>
+  </div>
+
   <div class="data-flow-layer"></div>
   <div class="hud-overlay"></div>
 
@@ -66,11 +70,10 @@
     <div class="hero-particles">
       <span></span><span></span><span></span>
     </div>
-
     <div class="hero-content-wrapper">
       <div class="hero-visual">
         <div class="visual-inner">
-          <img src="avatar.jpg" alt="Avatar" class="hero-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder');">
+          <img src="assets/images/avatar.jpg" alt="Avatar" class="hero-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder');">
         </div>
         <div class="visual-border"></div>
         <div class="visual-corner top-left"></div>
@@ -117,7 +120,7 @@
       <div class="about-card">
         <div class="about-visual">
           <div class="profile-frame">
-            <img src="avatar.jpg" alt="Profile" class="profile-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder-avatar');">
+            <img src="assets/images/avatar.jpg" alt="Profile" class="profile-img" onerror="this.style.display='none'; this.parentElement.classList.add('placeholder-avatar');">
             <div class="scan-line"></div>
             <div class="corner-decor top-left"></div>
             <div class="corner-decor bottom-right"></div>
@@ -260,91 +263,88 @@
     </section>
 
 <section id="projects" class="section">
-    <div class="section-header">
-      <h2 class="hacker-text no-scramble" data-ru="Проекты" data-en="Projects">Проекты</h2>
-      <div class="slider-nav">
-        <button id="slideLeft" class="nav-btn" aria-label="Previous">
-          <i class="ri-arrow-left-s-line"></i>
-        </button>
-        <button id="slideRight" class="nav-btn" aria-label="Next">
-          <i class="ri-arrow-right-s-line"></i>
-        </button>
-      </div>
+  <div class="section-header">
+    <h2 class="hacker-text no-scramble" data-ru="Проекты" data-en="Projects">Проекты</h2>
+    <div class="slider-nav">
+      <button id="slideLeft" class="nav-btn" aria-label="Previous">
+        <i class="ri-arrow-left-s-line"></i>
+      </button>
+      <button id="slideRight" class="nav-btn" aria-label="Next">
+        <i class="ri-arrow-right-s-line"></i>
+      </button>
     </div>
+  </div>
 
-    <div class="projects-container">
-      <div class="projects-track" id="projectsTrack">
+  <div class="projects-container">
+    <div class="projects-track" id="projectsTrack">
 
-        <article class="project-card">
-          <div class="card-image-wrapper">
-            <div class="card-image placeholder">
-              <div class="target-reticle"></div>
-            </div>
-            <div class="card-overlay"></div>
+      <article class="project-card">
+        <div class="card-image-wrapper">
+          <img src="https://placehold.co/600x400/1a1a1a/FFF?text=Combat+System" alt="Combat System" class="project-img">
+          
+          <div class="target-reticle"></div>
+          <div class="card-overlay"></div>
+        </div>
+        <div class="card-content">
+          <div class="card-tags">
+            <span>UE5</span><span>C++</span><span>Gameplay</span>
           </div>
-          <div class="card-content">
-            <div class="card-tags">
-              <span>UE5</span><span>C++</span><span>Gameplay</span>
-            </div>
-            <h3 class="hacker-text no-scramble" data-ru="Прототип боевой системы" data-en="Combat System Prototype">Прототип боевой системы</h3>
-            <p class="hacker-text no-scramble" data-ru="Реализация боевой логики с рывками, парированием и системой состояний персонажа." data-en="Implementation of combat logic including dash, parry, and character state management.">Реализация боевой логики с рывками, парированием и системой состояний персонажа.</p>
-            <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
-          </div>
-        </article>
+          <h3 class="hacker-text no-scramble" data-ru="Прототип боевой системы" data-en="Combat System Prototype">Прототип боевой системы</h3>
+          <p class="hacker-text no-scramble" data-ru="Реализация боевой логики с рывками, парированием и системой состояний персонажа." data-en="Implementation of combat logic including dash, parry, and character state management.">Реализация боевой логики с рывками, парированием и системой состояний персонажа.</p>
+          <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
+        </div>
+      </article>
 
-        <article class="project-card">
-          <div class="card-image-wrapper">
-            <div class="card-image placeholder">
-              <div class="target-reticle"></div>
-            </div>
-            <div class="card-overlay"></div>
+      <article class="project-card">
+        <div class="card-image-wrapper">
+          <img src="https://placehold.co/600x400/122222/FFF?text=Tactical+AI" alt="Tactical AI" class="project-img">
+          <div class="target-reticle"></div>
+          <div class="card-overlay"></div>
+        </div>
+        <div class="card-content">
+          <div class="card-tags">
+            <span>Blueprint</span><span>AI</span>
           </div>
-          <div class="card-content">
-            <div class="card-tags">
-              <span>Blueprint</span><span>AI</span>
-            </div>
-            <h3 class="hacker-text no-scramble" data-ru="Система тактического ИИ" data-en="Tactical AI System">Система тактического ИИ</h3>
-            <p class="hacker-text no-scramble" data-ru="Поведенческая логика NPC на основе Behavior Trees и Blackboard." data-en="NPC behavior logic based on Behavior Trees and Blackboard.">Поведенческая логика NPC на основе Behavior Trees и Blackboard.</p>
-            <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
-          </div>
-        </article>
+          <h3 class="hacker-text no-scramble" data-ru="Система тактического ИИ" data-en="Tactical AI System">Система тактического ИИ</h3>
+          <p class="hacker-text no-scramble" data-ru="Поведенческая логика NPC на основе Behavior Trees и Blackboard." data-en="NPC behavior logic based on Behavior Trees and Blackboard.">Поведенческая логика NPC на основе Behavior Trees и Blackboard.</p>
+          <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
+        </div>
+      </article>
 
-        <article class="project-card">
-          <div class="card-image-wrapper">
-            <div class="card-image placeholder">
-              <div class="target-reticle"></div>
-            </div>
-            <div class="card-overlay"></div>
+      <article class="project-card">
+        <div class="card-image-wrapper">
+          <img src="https://placehold.co/600x400/2a1a1a/FFF?text=Multiplayer+FPS" alt="Multiplayer FPS" class="project-img">
+          <div class="target-reticle"></div>
+          <div class="card-overlay"></div>
+        </div>
+        <div class="card-content">
+          <div class="card-tags">
+            <span>C++</span><span>Networking</span>
           </div>
-          <div class="card-content">
-            <div class="card-tags">
-              <span>C++</span><span>Networking</span>
-            </div>
-            <h3 class="hacker-text no-scramble" data-ru="Многопользовательский FPS" data-en="Multiplayer FPS">Многопользовательский FPS</h3>
-            <p class="hacker-text no-scramble" data-ru="Серверная авторитетная логика движения и базовая система матчмейкинга." data-en="Server-authoritative movement logic and basic matchmaking system.">Серверная авторитетная логика движения и базовая система матчмейкинга.</p>
-            <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
-          </div>
-        </article>
+          <h3 class="hacker-text no-scramble" data-ru="Многопользовательский FPS" data-en="Multiplayer FPS">Многопользовательский FPS</h3>
+          <p class="hacker-text no-scramble" data-ru="Серверная авторитетная логика движения и базовая система матчмейкинга." data-en="Server-authoritative movement logic and basic matchmaking system.">Серверная авторитетная логика движения и базовая система матчмейкинга.</p>
+          <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
+        </div>
+      </article>
 
-        <article class="project-card">
-          <div class="card-image-wrapper">
-            <div class="card-image placeholder">
-              <div class="target-reticle"></div>
-            </div>
-            <div class="card-overlay"></div>
+      <article class="project-card">
+        <div class="card-image-wrapper">
+          <img src="https://placehold.co/600x400/1a2a1a/FFF?text=Vehicle+Physics" alt="Vehicle Physics" class="project-img">
+          <div class="target-reticle"></div>
+          <div class="card-overlay"></div>
+        </div>
+        <div class="card-content">
+          <div class="card-tags">
+            <span>Physics</span><span>Vehicles</span>
           </div>
-          <div class="card-content">
-            <div class="card-tags">
-              <span>Physics</span><span>Vehicles</span>
-            </div>
-            <h3 class="hacker-text no-scramble" data-ru="Модель физики транспорта" data-en="Vehicle Physics Model">Модель физики транспорта</h3>
-            <p class="hacker-text no-scramble" data-ru="Настройка и тестирование кастомной модели поведения автомобиля." data-en="Setup and testing of a custom vehicle handling and physics model.">Настройка и тестирование кастомной модели поведения автомобиля.</p>
-            <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
-          </div>
-        </article>
+          <h3 class="hacker-text no-scramble" data-ru="Модель физики транспорта" data-en="Vehicle Physics Model">Модель физики транспорта</h3>
+          <p class="hacker-text no-scramble" data-ru="Настройка и тестирование кастомной модели поведения автомобиля." data-en="Setup and testing of a custom vehicle handling and physics model.">Настройка и тестирование кастомной модели поведения автомобиля.</p>
+          <a href="#" class="card-link hacker-text no-scramble" data-ru="Подробнее →" data-en="View Details →">Подробнее →</a>
+        </div>
+      </article>
 
-      </div>
     </div>
+  </div>
 </section>
 
   <footer class="footer" id="main-footer">
@@ -385,7 +385,7 @@
             <span class="link-text hacker-text" data-value="TikTok">TikTok</span>
           </a>
           <a href="https://steamcommunity.com" title="Steam">
-            <img src="icons8-steam-64.png" alt="Steam" class="steam-img">
+            <img src="assets/images/icons8-steam-64.png" alt="Steam" class="steam-img">
             <span class="link-text hacker-text" data-value="Steam">Steam</span>
           </a>
           <a href="https://github.com" title="GitHub">
@@ -400,14 +400,24 @@
     </div>
   </footer>
 
- <div class="audio-widget" id="audioContainer">
+<div class="audio-widget" id="audioContainer">
   <audio id="bgMusic" loop>
-    <source src="music.mp3" type="audio/mp3">
+    <source src="assets/sounds/music.mp3" type="audio/mp3">
   </audio>
 
   <div class="volume-control">
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3">
+    <span id="volumeDisplay" class="hacker-text">30%</span>
   </div>
+
+  <button id="sfxToggle" class="cyber-audio-btn sfx-btn">
+    <div class="audio-icon-box">
+      <i class="ri-notification-3-fill"></i>
+    </div>
+    <div class="audio-info-box">
+      <span class="audio-text hacker-text">SFX: ON</span>
+    </div>
+  </button>
 
   <button id="audioToggle" class="cyber-audio-btn">
     <div class="burst-container">
@@ -422,7 +432,7 @@
     </div>
 
     <div class="audio-icon-box">
-      <i class="ri-music-2-fill"></i>
+      <i class="ri-music-2-fill" id="audioIcon"></i>
     </div>
 
     <div class="audio-info-box">
@@ -440,11 +450,87 @@
     </div>
   </button>
 </div>
-  <div class="video-modal" id="videoModal">
-    <div class="video-overlay"></div>
-    <div class="video-content"><button class="video-close">×</button><iframe id="videoFrame" src="" loading="lazy" allowfullscreen></iframe></div>
-  </div>
 
+<div class="video-modal" id="videoModal">
+  <div class="video-overlay"></div>
+  
+  <div class="video-content">
+    <div class="modal-corner top-left"></div>
+    <div class="modal-corner top-right"></div>
+    <div class="modal-corner bottom-left"></div>
+    <div class="modal-corner bottom-right"></div>
+
+    <div class="modal-header">
+      <span class="modal-title hacker-text">>>> VIDEO FEED // LOCAL_SOURCE</span>
+      <button class="video-close">
+        <span>CLOSE</span>
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+
+    <div class="custom-video-player" id="customPlayer">
+      <video id="mainVideo" src="assets/gameplay.mp4" poster="preview.jpg" preload="metadata"></video>
+      
+      <div class="big-play-btn" id="bigPlayBtn">
+        <div class="play-icon-shape">
+          <i class="ri-play-fill"></i>
+        </div>
+        <div class="play-ripple"></div>
+      </div>
+
+      <div class="keyboard-feedback" id="keyFeedback"></div>
+
+      <div class="settings-menu" id="settingsMenu">
+        <div class="setting-group">
+          <span class="setting-label">SPEED</span>
+          <div class="setting-options" id="speedOptions">
+            <button data-speed="0.5">0.5x</button>
+            <button data-speed="1" class="active">1x</button>
+            <button data-speed="1.5">1.5x</button>
+            <button data-speed="2">2x</button>
+          </div>
+        </div>
+        <div class="setting-group">
+          <span class="setting-label">QUALITY</span>
+          <div class="setting-options" id="qualityOptions">
+            <button class="active">1080p</button>
+            <button>720p</button>
+            <button>480p</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-controls">
+        
+        <div class="progress-container">
+          <input type="range" id="videoProgress" min="0" max="100" value="0" step="0.1">
+        </div>
+
+        <div class="controls-row">
+          <div class="left-controls">
+            <button id="playPauseBtn" class="hud-btn"><i class="ri-play-fill"></i></button>
+            
+            <div class="video-volume-box">
+              <i class="ri-volume-up-line" id="videoVolIcon"></i>
+              <input type="range" id="videoVolume" min="0" max="1" step="0.1" value="0.7">
+            </div>
+
+            <span class="time-display hacker-text">
+              <span id="currentTime">00:00</span> / <span id="duration">00:00</span>
+            </span>
+          </div>
+
+          <div class="right-controls">
+            <button id="settingsBtn" class="hud-btn"><i class="ri-settings-3-line"></i></button>
+            <button id="fullscreenBtn" class="hud-btn"><i class="ri-fullscreen-line"></i></button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="scanline-overlay"></div>
+    </div>
+  </div>
+</div>
   <script src="script.js"></script>
 </body>
 </html>
