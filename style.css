@@ -1,6 +1,92 @@
 /* 1. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH ANIMATED PARTICLES */
 
-/* 1. GLOBAL VARIABLES, RESET & HUD BACKGROUND WITH FLASHLIGHT */
+/* СКРЫТИЕ HUD ЭЛЕМЕНТОВ ПРИ СКРОЛЛЕ К ФУТЕРУ */
+
+body.hud-hidden::after {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+body.hud-hidden .audio-widget {
+    opacity: 0;
+    pointer-events: none; 
+    transform: translateX(-100px); 
+    transition: all 0.5s ease;
+}
+
+body.hud-hidden #mobile-lang-toggle {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* ========================= */
+/* 18. CUSTOM TACTICAL CURSOR */
+/* ========================= */
+
+/* Скрываем системный курсор на всем сайте */
+body {
+  cursor: none; 
+}
+
+/* Контейнер курсора */
+#cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; /* ВАЖНО: пропускает клики сквозь себя */
+  z-index: 9999;
+  mix-blend-mode: difference; /* Инверсия цвета (по желанию) */
+}
+
+/* Центральная точка (движется мгновенно) */
+.cursor-dot {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  /* Начальная позиция за экраном */
+  left: -100px; top: -100px;
+  transition: width 0.2s, height 0.2s, background 0.2s;
+}
+
+/* Внешний круг (движется плавно с задержкой) */
+.cursor-circle {
+  position: absolute;
+  width: 40px; height: 40px;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  left: -100px; top: -100px;
+  /* Плавность только для размера и цвета, координаты обновляем через JS */
+  transition: width 0.3s, height 0.3s, border-color 0.3s, background 0.3s;
+  box-shadow: 0 0 10px rgba(108, 242, 194, 0.1);
+  opacity: 0.6;
+}
+
+/* --- СОСТОЯНИЕ HOVER (ПРИ НАВЕДЕНИИ) --- */
+/* Класс .hovering добавляется через JS */
+body.hovering .cursor-dot {
+  width: 10px; height: 10px;
+  background: #fff; /* Белая точка при наведении */
+  box-shadow: 0 0 5px #fff;
+}
+
+body.hovering .cursor-circle {
+  width: 60px; height: 60px; /* Круг расширяется */
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.05); /* Легкая заливка */
+  border-width: 2px;
+  opacity: 1;
+}
+
+/* --- МОБИЛЬНАЯ АДАПТАЦИЯ --- */
+/* На телефонах возвращаем обычное поведение */
+@media (max-width: 1024px) {
+  body { cursor: auto; }
+  #cursor { display: none; }
+}
 
 :root {
     /* Основная палитра */
@@ -123,10 +209,6 @@ body::before {
     50% { filter: brightness(1.4); opacity: 1; }
 }
 
-/* Реакция на музыку */
-body.music-playing::before { animation-duration: 1.5s; }
-body.music-playing .data-flow-layer { animation-duration: 2s; opacity: 0.3; }
-
 /* ТЕХНИЧЕСКИЙ ТЕКСТ */
 body::after {
     content: "COORD: 45.021 // 12.993 \A CORE: STABLE // VER: 2.5.1";
@@ -179,18 +261,18 @@ body::after {
     font-family: 'Consolas', 'Monaco', monospace;
     display: inline-block;
     position: relative;
-    white-space: pre-wrap; /* Сохраняем структуру текста */
+    white-space: pre-wrap; 
     transition: color var(--transition-fast);
 }
 
-/* Контейнеры для изоляции текста (чтобы не качало кнопки) */
+/* Контейнеры для изоляции текста*/
 
 .btn-text-wrapper, .stat-header {
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    min-width: 100px; /* Предотвращает схлопывание */
+    min-width: 100px; 
 }
 
 /*   3. HERO SECTION: CYBER COMMAND CENTER */
@@ -647,8 +729,9 @@ body::after {
   width: 100%;
   overflow: hidden;
   position: relative;
-  mask-image: linear-gradient(to right, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  /* ОБНОВЛЕНО: Маска градиентом с двух сторон (слева и справа) */
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
 }
 
 /* Дорожка (Скролл) */
@@ -659,12 +742,13 @@ body::after {
   scroll-behavior: smooth;
   padding-bottom: 40px; 
   padding-right: 40px;
+  padding-left: 20px; /* Добавлено, чтобы компенсировать маску слева */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .projects-track::-webkit-scrollbar { display: none; }
 
-/* Карточка */
+/* --- КАРТОЧКА ПРОЕКТА --- */
 .project-card {
   min-width: 340px; 
   max-width: 340px;
@@ -677,8 +761,7 @@ body::after {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  /* Принудительное выравнивание всего контента по левому краю */
-  align-items: flex-start;
+  align-items: flex-start; /* Выравнивание влево */
   text-align: left;
 }
 
@@ -689,58 +772,79 @@ body::after {
   z-index: 2;
 }
 
-/* Изображение */
+/* --- ОБЕРТКА ИЗОБРАЖЕНИЯ --- */
 .card-image-wrapper {
   width: 100%;
   height: 200px;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* Обрезает зум картинки */
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #000;
 }
 
-.card-image.placeholder {
-  width: 100%; height: 100%;
-  background: radial-gradient(circle at center, #2a2a35 0%, #16161c 100%);
-  display: flex; align-items: center; justify-content: center;
+/* --- ИЗОБРАЖЕНИЕ (НОВОЕ) --- */
+.project-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Заполняет блок, не сплющивая картинку */
+  object-position: center;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+  opacity: 0.8; /* Немного затемняем для стиля */
 }
 
-/* Прицел */
+/* Эффект зума при наведении на карточку */
+.project-card:hover .project-img {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* --- ПРИЦЕЛ (TARGET RETICLE) --- */
 .target-reticle {
-  width: 50px; height: 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%); /* Центрирование */
+  width: 40px; height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  position: relative;
-  transition: all 0.5s ease;
-}
-
-.project-card:hover .target-reticle {
-  transform: rotate(90deg) scale(1.2);
-  border-color: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
+  z-index: 3;
+  opacity: 0; /* Скрыт по умолчанию */
+  transition: all 0.4s ease;
+  pointer-events: none;
 }
 
 .target-reticle::before, .target-reticle::after {
   content: ''; position: absolute; background: var(--accent);
   top: 50%; left: 50%; transform: translate(-50%, -50%);
-  opacity: 0.5;
+  opacity: 0.8;
 }
 .target-reticle::before { width: 100%; height: 1px; }
 .target-reticle::after { width: 1px; height: 100%; }
 
+/* Анимация прицела при наведении */
+.project-card:hover .target-reticle {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(90deg) scale(1.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Оверлей (тень снизу картинки) */
 .card-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(14, 14, 17, 0.95), transparent);
-  opacity: 0.4; transition: opacity 0.3s ease;
+  opacity: 0.4; 
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
-/* Контент */
+/* --- КОНТЕНТ КАРТОЧКИ --- */
 .card-content {
   padding: 25px;
   display: flex; 
   flex-direction: column; 
   flex-grow: 1;
   width: 100%;
-  /* Выравнивание дочерних элементов по левому краю */
   align-items: flex-start; 
 }
 
@@ -759,21 +863,20 @@ body::after {
   letter-spacing: 0.5px;
 }
 
-/* Фиксированный заголовок */
+/* Заголовок */
 .project-card h3 {
   margin-bottom: 12px; 
   font-size: 1.3rem; 
   color: #fff;
   transition: color 0.3s ease;
-  min-height: 3.2em; 
+  min-height: 2.4em; /* Чуть уменьшил, чтобы не было слишком пусто */
   line-height: 1.2;
-  display: block; /* Уходим от flex для стабильности текста */
+  display: block; 
   width: 100%;
-  text-align: left;
 }
 .project-card:hover h3 { color: var(--accent); }
 
-/* Фиксированное описание */
+/* Описание */
 .project-card p {
   font-size: 0.95rem; 
   color: var(--muted); 
@@ -782,9 +885,9 @@ body::after {
   min-height: 4.8em; 
   display: block;
   width: 100%;
-  text-align: left;
 }
 
+/* Ссылка */
 .card-link {
   color: #fff; 
   text-decoration: none; 
@@ -799,15 +902,18 @@ body::after {
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   margin-top: auto; 
-  text-align: left;
 }
 .card-link:hover {
   color: var(--accent); gap: 12px; border-bottom-color: var(--accent);
 }
 
+/* Адаптив */
 @media (max-width: 768px) {
   .project-card { min-width: 280px; max-width: 280px; }
-  .projects-container { mask-image: none; -webkit-mask-image: none; }
+  .projects-container { 
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%); 
+  }
 }
 /* 6  FOOTER: GOD TIER (Preserved) */
 
@@ -970,7 +1076,6 @@ body::after {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-    /* Теперь скрываем так, чтобы иконка оставалась снаружи (примерно 55px) */
     transform: translateX(calc(-100% + 55px)); 
     transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
@@ -1010,22 +1115,100 @@ body::after {
     transition-delay: 0.1s;
 }
 
+/* 1. СЛАЙДЕР (Контейнер) */
 #volumeSlider {
     -webkit-appearance: none;
-    width: 80px; height: 4px;
-    background: rgba(108, 242, 194, 0.1);
+    appearance: none;
+    width: 100px;       /* Чуть шире, как на скринах */
+    height: 6px;        /* Оптимальная высота для полосы прогресса */
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
 }
 
+/* 2. ДОРОЖКА (Track) - Стиль прогресс-бара */
 #volumeSlider::-webkit-slider-runnable-track {
-    background: linear-gradient(90deg, var(--accent) var(--value, 50%), rgba(255,255,255,0.1) var(--value, 50%));
+    width: 100%;
+    height: 6px;
+    /* Градиент: Заполненная часть (Accent) + Пустая часть (Полупрозрачный белый) */
+    background: linear-gradient(90deg, 
+        var(--accent) var(--value, 30%), 
+        rgba(255, 255, 255, 0.1) var(--value, 30%)
+    );
+    border-radius: 3px; /* Закругленные края полосы */
+    transition: background 0.1s linear;
 }
 
+/* 3. БЕГУНОК (Thumb) - Круг */
 #volumeSlider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; height: 12px;
-    background: var(--bg-secondary);
-    border: 2px solid var(--accent);
-    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    appearance: none;
+    width: 14px;        /* Размер круга */
+    height: 14px;
+    background: var(--accent); /* Полностью закрашенный круг */
+    border: 2px solid var(--bg-secondary); /* Небольшая обводка под цвет фона для контраста */
+    border-radius: 50%; /* Превращаем квадрат в круг */
+    margin-top: -4px;   /* Центрируем: (14px thumb - 6px track) / 2 = 4px */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Легкая тень */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 4. ЭФФЕКТ ПРИ НАВЕДЕНИИ (Пульсация) */
+#volumeSlider:hover::-webkit-slider-thumb {
+    transform: scale(1.3); /* Увеличивается */
+    cursor: grab;
+    /* Запускаем анимацию пульсации */
+    animation: thumb-pulse 1.5s infinite; 
+}
+
+#volumeSlider:active::-webkit-slider-thumb {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+/* АНИМАЦИЯ ПУЛЬСАЦИИ */
+@keyframes thumb-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(108, 242, 194, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(108, 242, 194, 0); 
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(108, 242, 194, 0);
+    }
+}
+
+/* 5. ЦИФРОВОЙ ИНДИКАТОР */
+#volumeDisplay {
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    margin-left: 10px;
+    opacity: 0.8;
+    width: 25px;
+    text-align: right;
+    font-weight: bold;
+}
+
+/* Поддержка Firefox */
+#volumeSlider::-moz-range-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+#volumeSlider::-moz-range-progress {
+    background: var(--accent);
+    height: 6px;
+    border-radius: 3px;
+}
+#volumeSlider::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border: 2px solid var(--bg-secondary);
+    border-radius: 50%;
     margin-top: -4px;
 }
 
@@ -1090,13 +1273,11 @@ button.cyber-audio-btn.playing .bar {
 
 @keyframes equalize { 0%, 100% { height: 3px; } 50% { height: 14px; } }
 
-/* =========================================
-   МОБИЛЬНАЯ ВЕРСИЯ: HEX-WIDGET + RADIAL BURST
-   ========================================= */
+/* МОБИЛЬНАЯ ВЕРСИЯ: HEX-WIDGET + RADIAL BURST */
 @media (max-width: 1024px) {
     .audio-widget {
         left: 30px !important;
-        bottom: 60px !important; /* Подняли выше для удобства */
+        bottom: 60px !important; 
         transform: none !important;
         width: 80px; height: 80px;
         display: flex;
@@ -1151,7 +1332,6 @@ button.cyber-audio-btn.playing .bar {
         transition: 0.3s;
         box-shadow: 0 0 10px var(--accent);
         border-radius: 2px;
-        /* Лучи выходят из центра кнопки */
         transform-origin: center;
     }
 
@@ -1209,31 +1389,448 @@ button.cyber-audio-btn.playing .bar {
     /* Прячем текст и громкость */
     .audio-text, .volume-control { display: none !important; }
 }
-/* 10. VIDEO MODAL & RIPPLES */
+
+/* 10. VIDEO MODAL (HUD STYLE) & RIPPLES */
 
 .video-modal {
-    position: fixed; inset: 0; display: none; z-index: 2000;
-    align-items: center; justify-content: center;
-}
-.video-modal.active { display: flex; }
-.video-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); }
-.video-content { 
-    position: relative; width: 90%; max-width: 900px; 
-    background: #000; border: 1px solid var(--accent);
-    box-shadow: 0 0 30px var(--accent-glow);
+    position: fixed;
+    inset: 0;
+    display: flex; /* Flex всегда, но скрываем через opacity/visibility */
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
 }
 
+.video-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Фон с размытием и сеткой */
+.video-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 14, 17, 0.9);
+    backdrop-filter: blur(8px);
+    /* Легкая сетка на фоне */
+    background-image: 
+        linear-gradient(rgba(108, 242, 194, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108, 242, 194, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+/* Окно контента */
+.video-content {
+    position: relative;
+    width: 90%;
+    max-width: 960px;
+    background: #000;
+    border: 1px solid rgba(108, 242, 194, 0.3);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.video-modal.active .video-content {
+    transform: scale(1);
+}
+
+/* Верхняя панель заголовка */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(108, 242, 194, 0.05);
+    border-bottom: 1px solid rgba(108, 242, 194, 0.2);
+}
+
+.modal-title {
+    font-family: 'Consolas', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+
+/* Кнопка закрытия */
+.video-close {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    cursor: pointer;
+    padding: 5px 12px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.video-close:hover {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Адаптивная обертка для видео (16:9) */
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    background: #000;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Декоративные уголки (HUD Corners) */
+.modal-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--accent);
+    pointer-events: none;
+    z-index: 2;
+    transition: all 0.5s ease;
+}
+
+.modal-corner.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.modal-corner.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.modal-corner.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.modal-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.video-modal.active .modal-corner {
+    width: 40px; height: 40px; /* Анимация расширения уголков */
+}
+
+/* CLICK RIPPLE (Эффект клика по футеру) */
 .click-ripple {
-    position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
-    pointer-events: none; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
     border: 1px solid rgba(108, 242, 194, 0.5);
-    animation: shockwave 0.6s ease-out forwards; z-index: 10;
+    animation: shockwave 0.6s ease-out forwards;
+    z-index: 10;
 }
 
-@keyframes shockwave { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 300px; height: 300px; opacity: 0; } }
+@keyframes shockwave {
+    0% { width: 0; height: 0; opacity: 1; }
+    100% { width: 300px; height: 300px; opacity: 0; }
+}
+
+/* 11. CUSTOM HUD VIDEO PLAYER (DESKTOP & MOBILE ADAPTIVE) */
+
+.custom-video-player {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  background: #000;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* ЭФФЕКТ "ВКЛЮЧЕНИЯ" */
+  opacity: 0;
+  transform: scaleY(0); 
+  transform-origin: center;
+  filter: blur(10px);
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.custom-video-player.initialized {
+  opacity: 1;
+  transform: scaleY(1);
+  filter: blur(0);
+}
+
+.custom-video-player video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+
+/* Скан-линии */
+.scanline-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* --- БОЛЬШАЯ КНОПКА PLAY (КРУГЛАЯ) --- */
+.big-play-btn {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.3s ease;
+}
+
+.custom-video-player.playing .big-play-btn {
+  opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(1.5);
+}
+
+.play-icon-shape {
+  width: 100%; height: 100%;
+  background: rgba(14, 14, 17, 0.8);
+  border: 2px solid var(--accent);
+  border-radius: 50%; /* КРУГ */
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.play-icon-shape i { font-size: 2.5rem; color: var(--accent); margin-left: 5px; }
+
+.big-play-btn:hover .play-icon-shape {
+  background: var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+.big-play-btn:hover i { color: #000; }
+
+/* --- МЕНЮ НАСТРОЕК --- */
+.settings-menu {
+  position: absolute;
+  bottom: 60px; right: 20px;
+  width: 200px;
+  background: rgba(14, 14, 17, 0.95);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 15px;
+  z-index: 40;
+  opacity: 0; transform: translateY(10px); pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  backdrop-filter: blur(10px);
+}
+.settings-menu.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+.setting-group { margin-bottom: 12px; }
+.setting-label { display: block; font-family: 'Consolas', monospace; font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
+.setting-options { display: flex; gap: 5px; flex-wrap: wrap; }
+.setting-options button {
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff; font-size: 0.75rem; padding: 4px 8px; cursor: pointer; flex: 1;
+  font-family: 'Consolas', monospace; transition: all 0.2s;
+}
+.setting-options button:hover { border-color: var(--accent); color: var(--accent); }
+.setting-options button.active { background: var(--accent); color: #000; font-weight: bold; }
+#settingsBtn i { transition: transform 0.5s ease; }
+#settingsBtn.active i { transform: rotate(90deg); color: var(--accent); }
+
+/* --- ОБРАТНАЯ СВЯЗЬ (АНИМАЦИЯ ПО ЦЕНТРУ) --- */
+.keyboard-feedback {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    width: 80px; height: 80px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    font-size: 2.5rem;
+    opacity: 0; pointer-events: none; z-index: 50;
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+.keyboard-feedback.animate { animation: feedbackPop 0.6s ease-out forwards; }
+@keyframes feedbackPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+/* --- ПАНЕЛЬ УПРАВЛЕНИЯ --- */
+.player-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+  padding: 20px 20px 15px;
+  z-index: 30;
+  opacity: 0; transform: translateY(20px);
+  transition: all 0.3s ease;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.custom-video-player:hover .player-controls,
+.custom-video-player.paused .player-controls { opacity: 1; transform: translateY(0); }
+
+/* --- ПРОГРЕСС БАР (КРУГЛЫЙ) --- */
+.progress-container { width: 100%; position: relative; height: 10px; display: flex; align-items: center; }
+#videoProgress {
+  -webkit-appearance: none; width: 100%; height: 4px;
+  background: transparent; outline: none; cursor: pointer; z-index: 2; transition: all 0.2s;
+}
+#videoProgress::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, var(--accent) var(--seek-position, 0%), rgba(255,255,255,0.1) var(--seek-position, 0%));
+    height: 4px; border-radius: 2px;
+}
+#videoProgress::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: var(--accent); border: 2px solid #000; border-radius: 50%;
+  margin-top: -5px; box-shadow: 0 0 10px var(--accent-glow);
+  transform: scale(1); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#videoProgress:hover::-webkit-slider-thumb { transform: scale(1.4); background: #fff; box-shadow: 0 0 15px var(--accent); }
+
+/* --- КНОПКИ, ГРОМКОСТЬ И ВРЕМЯ --- */
+.controls-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+
+.left-controls { 
+  display: flex; align-items: center; 
+  gap: 5px; 
+}
+.right-controls { display: flex; align-items: center; gap: 15px; }
+
+.hud-btn {
+  background: transparent; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;
+  opacity: 0.8; transition: all 0.2s; display: flex; align-items: center;
+}
+.hud-btn:hover { color: var(--accent); opacity: 1; text-shadow: 0 0 10px var(--accent); transform: scale(1.1); }
+
+/* --- ЛЕВАЯ ЧАСТЬ ПАНЕЛИ --- */
+.left-controls { 
+  display: flex; 
+  align-items: center; 
+  /* Уменьшаем расстояние между ВСЕМИ элементами (Play, Volume, Time) */
+  gap: 5px; 
+}
+
+/* --- ВРЕМЯ --- */
+.time-display {
+  font-family: 'Consolas', monospace; 
+  font-size: 0.85rem; 
+  color: var(--muted);
+  /* УБИРАЕМ margin-left: -100px, так как он перекрывает громкость */
+  margin-left: 5px; 
+  /* Это позволяет кликам проходить сквозь текст, если он вдруг что-то перекроет */
+  pointer-events: none; 
+  white-space: nowrap; /* Чтобы текст не прыгал */
+}
+
+/* --- ГРОМКОСТЬ --- */
+.video-volume-box { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  z-index: 10; /* Поднимаем громкость выше остальных элементов */
+  position: relative;
+}
+
+.video-volume-box i { font-size: 1.1rem; color: var(--muted); }
+
+#videoVolume { 
+  -webkit-appearance: none; 
+  width: 70px; 
+  height: 4px; 
+  background: transparent; 
+  outline: none; 
+  cursor: pointer; 
+  /* Важно: ползунок должен быть кликабельным */
+  position: relative; 
+  z-index: 20; 
+}
+
+#videoVolume::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, var(--accent) var(--vol-position, 70%), rgba(255,255,255,0.1) var(--vol-position, 70%)); 
+  height: 4px;
+}
+
+#videoVolume::-webkit-slider-thumb {
+  -webkit-appearance: none; 
+  width: 10px; 
+  height: 10px; 
+  background: var(--accent); 
+  border-radius: 50%; 
+  margin-top: -3px;
+  box-shadow: 0 0 5px var(--accent); 
+  transition: transform 0.2s;
+  cursor: grab;
+}
+
+#videoVolume:hover::-webkit-slider-thumb { transform: scale(1.3); }
 
 
-/* 11. MOBILE UI & LANGUAGE TOGGLE */
+/* МОБИЛЬНАЯ АДАПТАЦИЯ (Max Width 768px) */
+
+@media (max-width: 768px) {
+  /* Панель управления */
+  .player-controls {
+    padding: 10px 15px;
+    background: linear-gradient(to top, rgba(0,0,0,1), transparent);
+  }
+
+  /* Скрываем ползунок громкости на мобильных (места мало, есть кнопки телефона) */
+  .video-volume-box {
+    display: none; 
+  }
+
+  /* Увеличиваем кнопки для пальцев */
+  .hud-btn {
+    font-size: 1.4rem;
+    padding: 8px;
+  }
+
+  /* Время сдвигаем обратно, так как громкости нет */
+  .time-display {
+    margin-left: 2px;
+    font-size: 0.75rem;
+  }
+
+  /* Уменьшаем большую кнопку Play, чтобы не перекрывала всё */
+  .big-play-btn {
+    width: 60px; height: 60px;
+  }
+  .play-icon-shape i { font-size: 1.8rem; }
+
+  /* Обратная связь по центру - поменьше */
+  .keyboard-feedback {
+    width: 60px; height: 60px;
+    font-size: 2rem;
+  }
+
+  /* Меню настроек - центрируем и делаем шире */
+  .settings-menu {
+    width: 90%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px); /* Центрирование */
+    bottom: 60px;
+    right: auto;
+  }
+  .settings-menu.active {
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  /* Увеличиваем область нажатия прогресс бара */
+  .progress-container {
+    height: 15px;
+  }
+  #videoProgress::-webkit-slider-thumb {
+    width: 16px; height: 16px; /* Чуть больше для пальца */
+    margin-top: -6px;
+  }
+}
+
+/* 12. MOBILE UI & LANGUAGE TOGGLE */
 
 .mobile-lang-btn {
     display: none; /* Скрыто на ПК */
@@ -1352,7 +1949,7 @@ button.cyber-audio-btn.playing .bar {
     }
 }
 
-/* ABOUT SECTION: ADAPTIVE FIX */
+/* 13 ABOUT SECTION: ADAPTIVE FIX */
 
 @media (max-width: 900px) {
     .about-card {
@@ -1434,7 +2031,7 @@ button.cyber-audio-btn.playing .bar {
         }
     }
 
-/* PROJECTS: PREMIUM MOBILE EXPERIENCE */
+/* 14 PROJECTS: PREMIUM MOBILE EXPERIENCE */
 
 @media (max-width: 768px) {
     .projects-container {
@@ -1511,7 +2108,7 @@ button.cyber-audio-btn.playing .bar {
     }
 }
 
-/* PROJECTS: MOBILE CENTER ALIGNMENT */
+/* 15 PROJECTS: MOBILE CENTER ALIGNMENT */
 
 @media (max-width: 768px) {
     .projects-container {
@@ -1559,7 +2156,7 @@ button.cyber-audio-btn.playing .bar {
 }
 
 
-/* FOOTER: MOBILE ADAPTIVE OPTIMIZATION */
+/* 16 FOOTER: MOBILE ADAPTIVE OPTIMIZATION */
 
 @media (max-width: 900px) {
     .footer {
@@ -1647,7 +2244,7 @@ button.cyber-audio-btn.playing .bar {
     }
 }
 
-/* AUDIO WIDGET: MOBILE STANDALONE STYLE */
+/* 17 AUDIO WIDGET: MOBILE STANDALONE STYLE */
 
 @media (max-width: 1024px) {
 
@@ -1734,7 +2331,7 @@ button.cyber-audio-btn.playing .bar {
     .projects-track::-webkit-scrollbar { display: none; }
 }
 
-/* FOOTER MOBILE OPTIMIZATION (SHIFT & BOUNDS) */
+/* 18 FOOTER MOBILE OPTIMIZATION (SHIFT & BOUNDS) */
 
 @media (max-width: 480px) {
     /* 1. Создаем отступ для аудио-кнопки */
@@ -1800,7 +2397,7 @@ button.cyber-audio-btn.playing .bar {
 }
 
 
-/*  FINAL MOBILE STABILIZATION BLOCK*/
+/*  19 FINAL MOBILE STABILIZATION BLOCK*/
 
 @media (max-width: 768px) {
 
@@ -1838,7 +2435,7 @@ button.cyber-audio-btn.playing .bar {
     }
 
 
-    /*  3. PROJECTS / MISSION LOG */
+    /*  20. PROJECTS / MISSION LOG */
 
     .projects-track {
         display: flex;
@@ -1862,7 +2459,7 @@ button.cyber-audio-btn.playing .bar {
         max-width: calc(100vw - 50px) !important;
     }
 
-    /* FIX: Stable headers (AI / long titles) */
+    /* 21 FIX: Stable headers (AI / long titles) */
 
     .project-card h3 {
         display: flex;
@@ -1883,7 +2480,7 @@ button.cyber-audio-btn.playing .bar {
     }
 
 
-    /*  4. FOOTER / FLOATING UI*/
+    /*  22. FOOTER / FLOATING UI*/
 
     .footer-left {
         padding-left: 70px !important;
@@ -1913,7 +2510,7 @@ button.cyber-audio-btn.playing .bar {
     }
 
 
-    /*  5. HUD CLEANUP */
+    /*  23. HUD CLEANUP */
 
     .scroll-indicator,
     .volume-control,
@@ -1924,7 +2521,7 @@ button.cyber-audio-btn.playing .bar {
 }
 
 
-/* EXTRA SMALL SCREENS */
+/* 24 EXTRA SMALL SCREENS */
 
 @media (max-width: 400px) {
 
@@ -1941,7 +2538,7 @@ button.cyber-audio-btn.playing .bar {
     }
 }
  
-/* ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
+/* 25 ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
 @media (max-width: 768px) {
     /* 1. Исправление сетки футера (соцсети) */
     .footer-hud {
@@ -2115,3 +2712,58 @@ button.cyber-audio-btn.playing .bar {
         box-shadow: 0 10px 20px var(--accent-glow);
     }
 }
+    /* --- ОТКЛЮЧЕНИЕ КАСТОМНОГО КУКСОРА В ПЛЕЕРЕ --- */
+    body.video-mode {
+    cursor: auto !important; /* Возвращаем системную стрелку */
+    }
+
+    body.video-mode #cursor {
+    display: none !important; /* Скрываем кастомный прицел */
+    opacity: 0;
+    }
+
+    /* Убедимся, что внутри плеера курсор точно стандартный */
+    .video-modal {
+    cursor: auto !important;
+    }
+
+        /*  СТИЛИ ДЛЯ КНОПКИ SFX */
+
+    /* Дополнительный класс для кнопки SFX, чтобы она отличалась */
+    .cyber-audio-btn.sfx-btn {
+    margin-right: 15px; 
+    padding: 0 15px;  
+    min-width: auto;    
+    }
+
+    /* Когда SFX выключен (класс .muted добавляется JS-ом) */
+    .cyber-audio-btn.muted {
+    border-color: var(--muted);
+    opacity: 0.6;
+    }
+
+    .cyber-audio-btn.muted .audio-icon-box i {
+    color: var(--muted);
+    }
+
+    .cyber-audio-btn.muted .audio-text {
+    color: var(--muted);
+    text-shadow: none;
+    }
+
+    /* При наведении на выключенную кнопку - подсвечиваем */
+    .cyber-audio-btn.muted:hover {
+    opacity: 1;
+    border-color: #fff;
+    }
+    .cyber-audio-btn.muted:hover .audio-icon-box i,
+    .cyber-audio-btn.muted:hover .audio-text {
+    color: #fff;
+    }
+
+    /* Выравнивание контейнера виджета (если еще не настроено) */
+    .audio-widget {
+    display: flex;
+    align-items: center;
+   
+    }
