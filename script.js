@@ -322,14 +322,12 @@
     const currentTimeEl = document.getElementById('currentTime');
     const durationEl = document.getElementById('duration');
     const feedbackEl = document.getElementById('keyFeedback');
-    // Settings Elements
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsMenu = document.getElementById('settingsMenu');
     const speedOptions = document.querySelectorAll('#speedOptions button');
     const qualityOptions = document.querySelectorAll('#qualityOptions button');
 
     if (mainVideo) {
-        // --- Helper Functions ---
         const formatTime = (s) => {
             const mins = Math.floor(s / 60);
             const secs = Math.floor(s % 60);
@@ -340,7 +338,7 @@
             if (!feedbackEl) return;
             feedbackEl.innerHTML = `<i class="${iconClass}"></i>`;
             feedbackEl.classList.remove('animate');
-            void feedbackEl.offsetWidth; // Force Reflow
+            void feedbackEl.offsetWidth; 
             feedbackEl.classList.add('animate');
         };
 
@@ -495,19 +493,18 @@
         if(fullscreenBtn) {
             fullscreenBtn.addEventListener('click', async () => {
                 if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                    // Входим в полный экран
+               
                     try {
                         if (customPlayer.requestFullscreen) {
                             await customPlayer.requestFullscreen();
-                        } else if (customPlayer.webkitRequestFullscreen) { /* Safari */
+                        } else if (customPlayer.webkitRequestFullscreen) { 
                             await customPlayer.webkitRequestFullscreen();
-                        } else if (mainVideo.webkitEnterFullscreen) { /* iOS Video Native */
+                        } else if (mainVideo.webkitEnterFullscreen) { 
                             mainVideo.webkitEnterFullscreen();
                         }
                         
-                        // Попытка повернуть экран горизонтально (Android)
                         if (screen.orientation && screen.orientation.lock) {
-                            screen.orientation.lock('landscape').catch(err => {// Браузер может запретить, это нормально
+                            screen.orientation.lock('landscape').catch(err => {
                     
                                 console.log('Orientation lock blocked:', err);
                             });
@@ -544,7 +541,7 @@
         if (videoModal) {
             videoModal.classList.add('active');
             document.body.style.overflow = 'hidden'; 
-            document.body.classList.add('video-mode'); // Отключаем кастомный курсор
+            document.body.classList.add('video-mode'); 
             pauseBgMusicForce();
 
             setTimeout(() => {
@@ -569,7 +566,7 @@
         if (videoModal) {
             videoModal.classList.remove('active');
             document.body.style.overflow = '';
-            document.body.classList.remove('video-mode'); // Возвращаем кастомный курсор
+            document.body.classList.remove('video-mode'); 
 
             if (customPlayer) {
                 customPlayer.classList.remove('initialized');
@@ -689,9 +686,7 @@
     }
 
     function initSfx() {
-        
-        // Ignore the toggle button itself to control it manually
-    
+
         const interactables = document.querySelectorAll(
             'button:not(#sfxToggle), a, input[type="range"], .project-card, .video-volume-box i'
         );
@@ -710,9 +705,6 @@
     const tiltCards = document.querySelectorAll('.project-card');
 
     tiltCards.forEach(card => {
-    
-        // Variables for throttle state
-    
         let isMoving = false;
         let mouseX = 0;
         let mouseY = 0;
@@ -721,30 +713,22 @@
             if (!isMoving) return;
 
             const rect = card.getBoundingClientRect();
-        
-            // Calculate relative position
-        
             const x = mouseX - rect.left;
             const y = mouseY - rect.top;
             const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-
-            // Calculate rotation (inverted Y for X-axis tilt)
-        
+            const centerY = rect.height / 2;  
             const rotateX = ((y - centerY) / centerY) * -10; 
             const rotateY = ((x - centerX) / centerX) * 10;   
 
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-            isMoving = false; // Reset flag for next frame
+            isMoving = false; 
         };
 
         card.addEventListener('mousemove', (e) => {
             if (isMobile()) return; 
             mouseX = e.clientX;
             mouseY = e.clientY;
-
-            // Request animation frame only if not pending
-        
+  
             if (!isMoving) {
                 isMoving = true;
                 requestAnimationFrame(updateCard);
@@ -758,7 +742,7 @@
         });
 
         card.addEventListener('mouseenter', () => {
-            card.style.transition = 'none'; // Remove transition for instant response
+            card.style.transition = 'none'; 
         });
     });
 
@@ -819,3 +803,116 @@
         if (cursorCenter) cursorCenter.style.opacity = '1';
         if (cursorRing) cursorRing.style.opacity = '1';
     });
+
+
+    // 19. MATRIX BACKGROUND EFFECT
+    
+    const canvas = document.getElementById('matrix-bg');
+    
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+
+        // Настройка размеров
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const charArray = chars.split('');
+        const fontSize = 14;
+        let columns = canvas.width / fontSize; 
+        let drops = [];
+        function initDrops() {
+            columns = canvas.width / fontSize;
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+        }
+        
+        initDrops();
+        window.addEventListener('resize', initDrops);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(14, 14, 17, 0.05)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#6cf2c2';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = charArray[Math.floor(Math.random() * charArray.length)];
+                
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 33);
+    }
+
+
+        // 20. ULTRA SMOOTH SCROLL (
+        
+        if (typeof Lenis !== 'undefined') {
+            
+            const lenis = new Lenis({
+                duration: 1.5,      
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,  
+                smoothTouch: false,   
+                touchMultiplier: 2,
+            });
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') {
+                        lenis.scrollTo(0);
+                    } else {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            lenis.scrollTo(targetElement);
+                        }
+                    }
+                });
+            });
+            
+            console.log("Smooth Scroll: ACTIVE");
+        }
+
+
+    // COPY EMAIL LOGIC
+    function copyEmail(e) {
+        if(e) e.preventDefault(); 
+        
+        const email = "vadimka.pastushenko@inbox.ru";
+        const btn = document.getElementById('emailBtn');
+        
+        navigator.clipboard.writeText(email).then(() => {
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(err => {
+            console.error('Ошибка:', err);
+        });
+        
+        return false;
+    }
+
+    
