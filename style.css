@@ -475,31 +475,80 @@
         color: #fff; text-shadow: 0 0 8px var(--accent);
     }
 
-    /* Scroll Indicator */
+/* SCROLL INDICATOR */
 
     .scroll-indicator {
-        position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-        display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0.7;
+        position: absolute; 
+        bottom: 2480px; 
+        left: 50%; 
+        transform: translateX(-50%);
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 10px; 
+        opacity: 0.8;
+        z-index: 10; 
+        pointer-events: none; 
+        transition: opacity 0.3s ease;
     }
 
+    /* Мышь */
+    
     .mouse {
-        width: 26px; height: 40px; border: 2px solid var(--muted); border-radius: 20px; position: relative;
+        width: 26px; 
+        height: 42px; 
+        border: 2px solid var(--accent); 
+        border-radius: 20px; 
+        position: relative;
+        box-shadow: 0 0 10px rgba(108, 242, 194, 0.2); 
     }
 
+    /* Колесико */
+   
     .wheel {
-        width: 4px; height: 4px; background: var(--accent); border-radius: 50%;
-        position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+        width: 4px; 
+        height: 6px; 
+        background: var(--accent); 
+        border-radius: 2px;
+        position: absolute; 
+        top: 8px; 
+        left: 50%; 
+        transform: translateX(-50%);
         animation: scroll-wheel 1.5s infinite;
     }
 
+    /* Стрелочки */
+    
     .arrow-scroll span {
-        display: block; width: 10px; height: 10px;
-        border-bottom: 2px solid var(--muted); border-right: 2px solid var(--muted);
-        transform: rotate(45deg); margin: -4px; animation: scroll-arrow 2s infinite;
+        display: block; 
+        width: 10px; 
+        height: 10px;
+        border-bottom: 2px solid var(--accent); 
+        border-right: 2px solid var(--accent);
+        transform: rotate(45deg); 
+        margin: -4px auto 0; 
+        animation: scroll-arrow 2s infinite;
+        opacity: 0;
     }
-    .arrow-scroll span:nth-child(2) { animation-delay: -0.2s; }
-    .arrow-scroll span:nth-child(3) { animation-delay: -0.4s; }
 
+    /* Задержка для эффекта "волны" */
+   
+    .arrow-scroll span:nth-child(1) { animation-delay: 0s; }
+    .arrow-scroll span:nth-child(2) { animation-delay: 0.2s; }
+    .arrow-scroll span:nth-child(3) { animation-delay: 0.4s; }
+
+    /*  АНИМАЦИИ */
+
+    @keyframes scroll-wheel {
+        0% { top: 6px; opacity: 1; height: 6px; }
+        100% { top: 24px; opacity: 0; height: 4px; }
+    }
+
+    @keyframes scroll-arrow {
+        0% { opacity: 0; transform: rotate(45deg) translate(-5px, -5px); }
+        50% { opacity: 1; }
+        100% { opacity: 0; transform: rotate(45deg) translate(5px, 5px); }
+    }
     /* Animations */
 
     @keyframes pulse-border { 0% { opacity: 0.3; } 100% { opacity: 0.8; box-shadow: 0 0 15px var(--accent); } }
@@ -591,7 +640,7 @@
     z-index: 1;
     }
 
-    /* УБРАНЫ ВСЕ ГЛЮКИ - ОСТАВЛЕНО ТОЛЬКО ЛЕГКОЕ ПОВЫШЕНИЕ ЯРКОСТИ */
+    /* ОСТАВЛЕНО ТОЛЬКО ЛЕГКОЕ ПОВЫШЕНИЕ ЯРКОСТИ */
    
     .profile-frame:hover .profile-img {
     opacity: 1;
@@ -814,17 +863,14 @@
 
     /* ВАЖНЫЕ ФИКСЫ ДЛЯ ПРОИЗВОДИТЕЛЬНОСТИ 3D */
    
-    will-change: transform;       /* Говорит браузеру заранее подготовить слой */
-    transform-style: preserve-3d; /* Улучшает рендеринг 3D */
-    backface-visibility: hidden;  /* Убирает отрисовку задней части */
+    will-change: transform;       
+    transform-style: preserve-3d; 
+    backface-visibility: hidden;  
     }
 
     .project-card:hover {
     transform: translateY(-10px);
     border-color: var(--accent);
-    
-    /* Чуть уменьшил размытие тени для снижения нагрузки на GPU */
-    
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
     z-index: 2;
     }
@@ -1185,8 +1231,8 @@
     #volumeSlider {
         -webkit-appearance: none;
         appearance: none;
-        width: 100px;       /* Чуть шире, как на скринах */
-        height: 6px;        /* Оптимальная высота для полосы прогресса */
+        width: 100px;       
+        height: 6px;      
         background: transparent;
         outline: none;
         cursor: pointer;
@@ -1199,9 +1245,6 @@
     #volumeSlider::-webkit-slider-runnable-track {
         width: 100%;
         height: 6px;
-      
-        /* Градиент: Заполненная часть Accent + Пустая часть Полупрозрачный белый */
-      
         background: linear-gradient(90deg, 
             var(--accent) var(--value, 30%), 
             rgba(255, 255, 255, 0.1) var(--value, 30%)
@@ -1228,11 +1271,8 @@
     /* 4. ЭФФЕКТ ПРИ НАВЕДЕНИИ */
     
     #volumeSlider:hover::-webkit-slider-thumb {
-        transform: scale(1.3); /* Увеличивается */
-        cursor: grab;
-        
-        /* Запускаем анимацию пульсации */
-        
+        transform: scale(1.3); 
+        cursor: grab;  
         animation: thumb-pulse 1.5s infinite; 
     }
 
@@ -1292,10 +1332,7 @@
     
     button.cyber-audio-btn {
         background: rgba(14, 14, 17, 0.95) !important;
-        border: 1px solid rgba(108, 242, 194, 0.3) !important;
-        
-        /* Акцентная линия слева как на скринах кнопок */
-       
+        border: 1px solid rgba(108, 242, 194, 0.3) !important;  
         border-left: 4px solid var(--accent) !important; 
         padding: 0 !important; 
         display: flex !important;
@@ -1481,7 +1518,7 @@
     .video-modal {
         position: fixed;
         inset: 0;
-        display: flex; /* Flex всегда, но скрываем через opacity/visibility */
+        display: flex; 
         align-items: center;
         justify-content: center;
         z-index: 2000;
@@ -1572,7 +1609,7 @@
    
     .video-wrapper {
         position: relative;
-        padding-bottom: 56.25%; /* 16:9 */
+        padding-bottom: 56.25%; 
         height: 0;
         background: #000;
     }
@@ -1604,7 +1641,7 @@
     .modal-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
 
     .video-modal.active .modal-corner {
-        width: 40px; height: 40px; /* Анимация расширения уголков */
+        width: 40px; height: 40px; 
     }
 
 
@@ -1613,14 +1650,11 @@
     .custom-video-player {
     position: relative;
     width: 100%;
-    padding-bottom: 56.25%; /* 16:9 */
+    padding-bottom: 56.25%; 
     background: #000;
     overflow: hidden;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    
-    /* ЭФФЕКТ "ВКЛЮЧЕНИЯ" */
-   
+    -webkit-tap-highlight-color: transparent; 
     opacity: 0;
     transform: scaleY(0); 
     transform-origin: center;
@@ -1686,8 +1720,6 @@
     box-shadow: 0 0 30px var(--accent-glow);
     }
     .big-play-btn:hover i { color: #000; }
-
-    /* МЕНЮ НАСТРОЕК  */
    
     .settings-menu {
     position: absolute;
@@ -1794,7 +1826,7 @@
     
     .left-controls { 
     display: flex; 
-    align-items: center; /* Уменьшаем расстояние между ВСЕМИ элементами (Play, Volume, Time) */
+    align-items: center; 
     gap: 5px; 
     }
 
@@ -1803,18 +1835,19 @@
     .time-display {
     font-family: 'Consolas', monospace; 
     font-size: 0.85rem; 
-    color: var(--muted); /* УБИРАЕМ margin-left: -100px, так как он перекрывает громкость */
-    margin-left: 5px;  /* Это позволяет кликам проходить сквозь текст, если он вдруг что-то перекроет */
+    color: var(--muted); 
+    margin-left: 5px;  
     pointer-events: none; 
-    white-space: nowrap; /* Чтобы текст не прыгал */
+    white-space: nowrap; 
     }
 
     /* ГРОМКОСТЬ */
+  
     .video-volume-box { 
     display: flex; 
     align-items: center; 
     gap: 8px; 
-    z-index: 10; /* Поднимаем громкость выше остальных элементов */
+    z-index: 10; 
     position: relative;
     }
 
@@ -1826,7 +1859,7 @@
     height: 4px; 
     background: transparent; 
     outline: none; 
-    cursor: pointer; /* Важно: ползунок должен быть кликабельным */
+    cursor: pointer; 
     position: relative; 
     z-index: 20; 
     }
@@ -1858,7 +1891,7 @@
     /*  1. Адаптация контролов */
    
     .player-controls {
-        padding: 10px 15px;  /* Учитываем "челку" и полосу прокрутки на iPhone */
+        padding: 10px 15px;  
         padding-bottom: calc(10px + env(safe-area-inset-bottom));
         padding-left: calc(15px + env(safe-area-inset-left));
         padding-right: calc(15px + env(safe-area-inset-right));
@@ -1868,47 +1901,28 @@
     /* Скрываем громкость  */
    
     .video-volume-box { display: none; }
-
-    /* Увеличиваем кнопки */
-   
     .hud-btn { font-size: 1.4rem; padding: 10px; }
-
-    /* Время */
-  
     .time-display { margin-left: 2px; font-size: 0.75rem; }
-
-    /* Уменьшаем кнопку Play */
-   
     .big-play-btn { width: 60px; height: 60px; }
     .play-icon-shape i { font-size: 1.8rem; }
-
-    /* Обратная связь */
-   
     .keyboard-feedback { width: 60px; height: 60px; font-size: 2rem; }
-
-    /* Меню настроек - центрируем */
-   
     .settings-menu {
         width: 90%; left: 50%;
         transform: translateX(-50%) translateY(10px);
-        bottom: 70px; /* Чуть выше из-за safe-area */
+        bottom: 70px;
         right: auto;
     }
     .settings-menu.active { transform: translateX(-50%) translateY(0); }
-    
-    /* Прогресс бар - удобнее нажимать */
-    
     .progress-container { height: 20px; }
     #videoProgress::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -7px; }
     }
 
     /* 2. ПОДДЕРЖКА ГОРИЗОНТАЛЬНОГО РЕЖИМА LANDSCAPE */
-    /* Если пользователь повернул телефон, растягиваем плеер на весь экран */
-  
+
     @media (max-width: 900px) and (orientation: landscape) {
     
     .video-modal {
-        align-items: flex-start; /* Чтобы не центрировалось, а заполняло */
+        align-items: flex-start;
         background: #000;
     }
 
@@ -1922,15 +1936,13 @@
     
     .custom-video-player {
         height: 100vh;
-        padding-bottom: 0; /* Убираем пропорции 16:9, теперь высота фиксированная */
+        padding-bottom: 0; 
     }
 
     .custom-video-player video {
-        object-fit: contain; /* Видео целиком вписывается в экран */
+        object-fit: contain;
     }
 
-    /* Скрываем шапку модалки в горизонтали, чтобы видео было больше */
-   
     .modal-header {
         position: absolute;
         top: 0; left: 0; width: 100%;
@@ -1950,7 +1962,6 @@
     }
 
     /* 3. СТИЛИ ДЛЯ NATIVE FULLSCREEN API */
-    /* Когда браузер переводит элемент в реальный полноэкранный режим */
    
     :fullscreen, ::backdrop {
     background-color: #000;
@@ -1970,17 +1981,13 @@
     max-height: 100%;
     object-fit: contain;
     }
-
-    /* Специально для iPhone/Safari webkit */
    
     .custom-video-player:-webkit-full-screen {
     width: 100vw;
     height: 100vh;
     padding-bottom: 0;
     }
-
-    /* CLICK RIPPLE Эффект клика по футеру */
-   
+ 
     .click-ripple {
         position: absolute;
         border-radius: 50%;
@@ -2002,14 +2009,11 @@
     /* 12. MOBILE UI & LANGUAGE TOGGLE */
 
     .mobile-lang-btn {
-        display: none; /* Скрыто на ПК */
+        display: none; 
         position: fixed;
-
-        /* ПОДНЯТО: теперь 125px от низа, чтобы не мешать карточкам и аудио */
-
         bottom: 125px; 
         right: 25px;
-        z-index: 1100; /* Выше всех HUD элементов */
+        z-index: 1100;
         background: var(--bg-secondary);
         border: 1px solid var(--accent);
         color: var(--accent);
@@ -2022,9 +2026,6 @@
         font-family: 'Consolas', monospace;
         font-weight: bold;
         text-transform: uppercase;
-
-        /* Анимация привлечения внимания */
-
         animation: bounce-attention 5s infinite;
         cursor: pointer;
         transition: all 0.3s var(--transition-base);
@@ -2050,10 +2051,8 @@
             display: flex; 
         }
 
-        /* Отключаем hover-эффекты текста на мобилках, чтобы не мешали скроллу */
-
         .hacker-text { 
-            pointer-events: auto; /* Разрешаем клик (тап), но CSS-ховеры не сработают */
+            pointer-events: auto; 
         }
         
         /* Центрирование Hero */
@@ -2075,8 +2074,6 @@
             margin: 0 !important; 
         }
 
-        /* Очистка HUD для мобильных */
-
         .volume-control, 
         .hud-corner, 
         .hud-text,
@@ -2084,8 +2081,7 @@
             display: none !important; 
         }
 
-        /* Кнопка звука */
-
+     
         .audio-widget { 
             bottom: 25px; 
             left: 25px; 
@@ -2103,11 +2099,9 @@
         }
         
         .footer { 
-            padding: 50px 20px 100px; /* Больше отступа снизу из-за кнопок */
+            padding: 50px 20px 100px; 
         }
-
-        /* Смещаем кнопку языка чуть правее на мелких экранах */
-    
+ 
         .mobile-lang-btn {
             right: 15px;
             bottom: 120px;
@@ -2122,15 +2116,9 @@
 
     @media (max-width: 900px) {
         .about-card {
-    
-            /* Переключаем сетку в одну колонку */
-    
             grid-template-columns: 1fr;
             padding: 20px 15px;
             gap: 25px;
-    
-            /* Убираем жесткую высоту, если она была */
-    
             height: auto;
             display: flex;
             flex-direction: column;
@@ -2139,46 +2127,42 @@
 
         .about-visual {
             width: 100%;
-            max-width: 280px; /* Ограничиваем ширину рамки фото */
+            max-width: 280px;
             margin: 0 auto;
         }
 
         .profile-frame {
-            height: 250px; /* Уменьшаем высоту фото для мобилок */
+            height: 250px; 
         }
 
         .about-content {
             width: 100%;
-            text-align: center; /* Центрируем текст для лучшего вида на узком экране */
+            text-align: center; 
         }
 
         .bio-text {
-            border-left: none; /* Убираем боковую линию, она занимает место */
+            border-left: none; 
             padding-left: 0;
             margin-bottom: 20px;
-            font-size: 0.9rem; /* Чуть уменьшаем шрифт */
+            font-size: 0.9rem; 
         }
 
         .bio-stats-grid {
-            grid-template-columns: 1fr; /* Статы в один столбик, чтобы не сжимались */
+            grid-template-columns: 1fr; 
             gap: 10px;
             width: 100%;
         }
 
         .bio-stat {
             padding: 12px;
-            text-align: left; /* Внутри стата текст лучше оставить слева */
+            text-align: left; /
         }
 
-        /* Исправление для "Данные профиля" заголовка */
-    
         .section h2 {
             font-size: 1.6rem;
             margin-bottom: 30px;
         }
     }
-
-        /* Дополнительный фикс для совсем маленьких экранов (iPhone SE и т.д.) */
 
         @media (max-width: 400px) {
             .hero-title {
@@ -2206,19 +2190,13 @@
         .projects-container {
             mask-image: none;
             -webkit-mask-image: none;
-
-            /* Оставляем небольшие отступы, чтобы карточка была в центре */
-
             padding: 0 30px; 
-            overflow: visible; /* Позволяет видеть тени соседних карточек */
+            overflow: visible; 
         }
 
         .projects-track {
             gap: 15px;
             padding-bottom: 30px;
-
-            /* Жесткая привязка: скролл всегда остановится на центре карточки */
-
             scroll-snap-type: x mandatory;
             display: flex;
             overflow-x: auto;
@@ -2226,27 +2204,19 @@
         }
 
         .project-card {
-
-            /* Идеальный размер: карточка почти на весь экран, но видны края других */
-
             min-width: calc(100vw - 60px); 
             max-width: calc(100vw - 60px);
             scroll-snap-align: center;
-            
-            /* Улучшаем визуальный вес */
-
             background: rgba(22, 22, 28, 0.95);
             border: 1px solid rgba(108, 242, 194, 0.2);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* Делаем область изображения компактнее на мобилках */
-
         .card-image-wrapper {
             height: 160px;
         }
 
-        /* Увеличиваем кликабельность ссылки */
+  
 
         .card-link {
             padding: 12px 0;
@@ -2270,8 +2240,6 @@
             font-size: 0.6rem;
         }
 
-        /* Скрываем кнопки стрелок, они мешают на тач-экранах */
-
         .slider-nav {
             display: none;
         }
@@ -2281,7 +2249,7 @@
 
     @media (max-width: 768px) {
         .projects-container {
-            padding: 0; /* Убираем лишние отступы здесь */
+            padding: 0; 
             overflow: hidden;
             width: 100%;
         }
@@ -2290,36 +2258,20 @@
             display: flex;
             overflow-x: auto;
             scroll-behavior: smooth;
-
-            /* Магнитное центрирование */
-
             scroll-snap-type: x mandatory; 
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
-            
-            /* Важно: отступы слева и справа должны быть равны, 
-            чтобы первая и последняя карточки тоже могли встать по центру */
-
             padding: 0 30px 30px; 
             gap: 15px;
         }
 
         .project-card {
-
-            /* Карточка занимает почти всю ширину, оставляя место для зазоров */
-
             min-width: calc(100vw - 60px); 
             max-width: calc(100vw - 60px);
-            
-            /* Привязка центра карточки к центру контейнера */
-
             scroll-snap-align: center; 
-            
-            flex-shrink: 0; /* Запрещаем сжатие */
+            flex-shrink: 0; 
             transition: transform 0.4s ease, opacity 0.4s ease;
         }
-
-        /* Скрываем скроллбар для чистоты */
 
         .projects-track::-webkit-scrollbar { display: none; }
     }
@@ -2329,7 +2281,7 @@
 
     @media (max-width: 900px) {
         .footer {
-            padding: 60px 15px 30px; /* Уменьшаем внутренние отступы */
+            padding: 60px 15px 30px; 
             margin-top: 60px;
         }
 
@@ -2338,8 +2290,6 @@
             gap: 40px;
             text-align: center;
         }
-
-        /* Контакты: выстраиваем в два столбца вместо длинной строки */
 
         .contacts {
             display: grid;
@@ -2351,14 +2301,12 @@
         }
 
         .contacts a {
-            justify-content: center; /* Центрируем иконку и текст внутри ссылки */
+            justify-content: center; 
             background: rgba(255, 255, 255, 0.03);
             padding: 12px;
             border-radius: 8px;
             font-size: 0.8rem;
         }
-
-        /* Убираем лишние декоративные элементы, которые мешают на мобилках */
 
         .footer-hud, .hud-corner, .hud-text {
             display: none !important;
@@ -2369,8 +2317,6 @@
             margin-left: 0;
         }
 
-        /* Копирайт и статус-баджи */
-
         .status-badge {
             margin-bottom: 10px;
         }
@@ -2380,8 +2326,6 @@
             padding: 10px;
         }
 
-        /* Кнопка "Наверх" */
-
         .footer-right {
             width: 100%;
             display: flex;
@@ -2389,14 +2333,10 @@
         }
     }
 
-    /* Фикс для очень узких экранов (телефоны в портретном режиме) */
-
     @media (max-width: 480px) {
         .contacts {
-            grid-template-columns: 1fr; /* На самых маленьких экранах — всё в один столбик */
+            grid-template-columns: 1fr; 
         }
-
-        /* Сдвигаем кнопку перевода выше, чтобы она не перекрывала контакты */
 
         .mobile-lang-btn {
             bottom: 85px; 
@@ -2405,8 +2345,6 @@
             height: 45px;
         }
         
-        /* Сдвигаем виджет аудио, чтобы не было конфликта */
-
         .audio-widget {
             bottom: 20px;
             left: 15px;
@@ -2416,8 +2354,6 @@
     /* 17 AUDIO WIDGET: MOBILE STANDALONE STYLE */
 
     @media (max-width: 1024px) {
-
-        /* Скрываем стандартный контейнер и ползунок */
 
         .volume-control {
             display: none !important;
@@ -2429,33 +2365,27 @@
             gap: 0;
         }
 
-        /* Превращаем кнопку в круглую (как кнопку языка) */
-
         .cyber-audio-btn {
             width: 50px;
             height: 50px;
             padding: 0;
             justify-content: center;
-            border-radius: 50%; /* Делаем круглой */
-            clip-path: none;    /* Отменяем срезанные углы для круга */
+            border-radius: 50%;
+            clip-path: none;  
             border: 1px solid var(--accent);
             background: var(--bg-secondary);
             box-shadow: 0 0 15px var(--accent-glow);
-            border-left: 1px solid var(--accent); /* Сбрасываем толстую полосу слева */
+            border-left: 1px solid var(--accent); 
         }
-
-        /* Скрываем текст "ЗВУК: ВЫКЛ" на мобилках, оставляем только иконку и эквалайзер */
 
         .audio-text {
             display: none !important;
         }
 
         .cyber-audio-btn i {
-            font-size: 1.4rem; /* Увеличиваем иконку для тапа */
+            font-size: 1.4rem; 
             margin: 0;
         }
-
-        /* Смещаем эквалайзер чуть ниже иконки внутри круга */
 
         .equalizer {
             position: absolute;
@@ -2472,17 +2402,8 @@
         .projects-track {
             display: flex;
             overflow-x: auto;
-
-            /* Убираем дерганье при автоскролле */
-
             scroll-behavior: smooth;
-
-            /* Магнитный эффект */
-
             scroll-snap-type: x mandatory;
-
-            /* Скрываем стандартный скроллбар */
-
             scrollbar-width: none; 
             -webkit-overflow-scrolling: touch;
             gap: 20px;
@@ -2491,11 +2412,10 @@
 
         .project-card {
             min-width: calc(100vw - 60px);
-            scroll-snap-align: center; /* Карточка всегда центрируется */
+            scroll-snap-align: center; 
             transition: transform 0.5s ease;
         }
 
-        /* Легкое уменьшение боковых карточек для фокуса на центральной */
 
         .projects-track::-webkit-scrollbar { display: none; }
     }
@@ -2503,23 +2423,17 @@
     /* 18 FOOTER MOBILE OPTIMIZATION SHIFT & BOUNDS */
 
     @media (max-width: 480px) {
-        /* 1. Создаем отступ для аудио-кнопки */
-
         .footer-left {
-            padding-left: 60px; /* Сдвигаем блок вправо, освобождая место слева */
+            padding-left: 60px; 
             align-items: flex-start !important;
             text-align: left !important;
         }
 
-        /* 2. Ограничиваем ширину контента, чтобы он не упирался в кнопку языка справа */
-
         .footer-content {
             max-width: 100%;
-            padding-right: 60px; /* Безопасная зона справа */
+            padding-right: 60px;
             box-sizing: border-box;
         }
-
-        /* 3. Компактная сетка контактов, чтобы не выходила за пределы */
 
         .contacts {
             display: flex;
@@ -2529,21 +2443,17 @@
             width: fit-content;
         }
 
-        /* 4. Фиксация положения кнопок (Sound & Lang) */
-
         .audio-widget {
             bottom: 20px !important;
             left: 15px !important;
-            z-index: 1002; /* Поверх всего */
+            z-index: 1002; 
         }
 
         .mobile-lang-btn {
-            bottom: 20px !important; /* Опускаем на один уровень со звуком */
+            bottom: 20px !important; 
             right: 15px !important;
             z-index: 1002;
         }
-
-        /* 5. Инфо-блок "Система в сети" */
 
         .status-badge {
             font-size: 0.7rem;
@@ -2566,19 +2476,13 @@
     }
 
 
-    /*  19 FINAL MOBILE STABILIZATION BLOCK*/
-
     @media (max-width: 768px) {
-
-        /* 1. SECTION CONTAINERS */
 
         .section {
             padding: 40px 15px !important;
             overflow: hidden;
         }
 
-
-        /*  2. ABOUT / BIO*/
         .about-card {
             display: flex !important;
             flex-direction: column !important;
@@ -2710,9 +2614,7 @@
     /* 25 ДОПОЛНИТЕЛЬНЫЙ МОБИЛЬНЫЙ АДАПТИВ */
     
     @media (max-width: 768px) {
-        
-        /* 1. Исправление сетки футера (соцсети) */
-        
+         
         .footer-hud {
             display: flex;
             flex-direction: column;
@@ -2720,21 +2622,17 @@
             gap: 15px;
             padding: 20px;
         }
-
-        /* Делаем кнопки соцсетей шире для удобства нажатия */
         
         .footer-hud a {
-            width: 160px; /* Фиксированная ширина, чтобы не прыгало */
+            width: 160px; 
             justify-content: flex-start;
         }
-
-        /* 2. Позиционирование переключателя языка (RU) */
-      
+  
         #mobile-lang-toggle {
             position: fixed;
             right: 20px !important;
             bottom: 30px !important;
-            left: auto !important; /* Сбрасываем left */
+            left: auto !important; 
             z-index: 1100;
             width: 50px;
             height: 50px;
@@ -2747,23 +2645,17 @@
             font-weight: bold;
             box-shadow: 0 0 15px var(--accent-glow);
         }
-
-        /* 3. Фикс аудио-виджета (чтобы не перекрывал кнопки) */
-      
+  
         .audio-widget {
             left: 20px !important;
             bottom: 30px !important;
             right: auto !important;
         }
-
-        /* 4. Корректировка центральной линии волны */
-     
+  
         .visualizer-line {
-            width: 80% !important; /* Уменьшаем ширину волны на мобилках */
+            width: 80% !important;
             margin: 0 auto;
         }
-
-        /* 5. Кнопка "Смотреть геймплей" - адаптив */
       
         .cyber-btn {
             width: 100%;
@@ -2773,9 +2665,7 @@
     }
 
     @media (max-width: 1024px) {
-      
-        /* Контейнер футера */
-      
+           
         #main-footer {
             display: flex;
             flex-direction: column;
@@ -2783,32 +2673,26 @@
             text-align: center;
             padding-bottom: 120px;
         }
-
-        /* 1. Смещение статуса "Система в сети" на 10px влево */
-      
+ 
         .status-badge, 
         [class*="status"] { 
             position: relative;
-            left: -10px; /* Прямое смещение влево */
+            left: -10px; 
             margin: 0 auto 15px auto !important;
             display: inline-flex;
             justify-content: center;
         }
-
-        /* 2. Смещение копирайта на 10px влево */
-        
+   
         .copyright,
         #main-footer p {
             position: relative;
-            left: -10px; /* Прямое смещение влево */
+            left: -10px; 
             width: 100%;
             display: block;
             margin: 10px 0 !important;
             text-align: center !important;
         }
-
-        /* 3. Центрирование списка соцсетей без смещения, для баланса */
-        
+  
         .footer-hud {
             width: 100%;
             display: flex;
@@ -2894,8 +2778,7 @@
             box-shadow: 0 10px 20px var(--accent-glow);
         }
     }
-        /* ОТКЛЮЧЕНИЕ КАСТОМНОГО КУКСОРА В ПЛЕЕРЕ */
-      
+       
         body.video-mode {
         cursor: auto !important; 
         }
@@ -2912,26 +2795,20 @@
     /* DESKTOP: UNIFIED BUTTON STYLES EQUAL SIZE */
 
     @media (min-width: 1025px) {
-        
-        /* 1. Контейнер виджета: выстраиваем в колонку друг под другом */
-        
+            
         .audio-widget {
             display: flex;
-            flex-direction: column; /* Вертикальный стек */
+            flex-direction: column; 
             align-items: flex-start;
-            gap: 12px; /* Отступ между кнопками */
+            gap: 12px; 
         }
 
-        /* 2. Общий стандарт для ОБЕИХ кнопок */
        
         button.cyber-audio-btn {
-            width: 200px !important; /* Фиксированная ширина для идеального выравнивания */
-            height: 48px !important; /* Одинаковая высота */
-            margin: 0 !important;    /* Убираем лишние отступы */
-            padding: 0 !important;
-            
-            /* Возвращаем общий стиль */
-            
+            width: 200px !important; 
+            height: 48px !important; 
+            margin: 0 !important;   
+            padding: 0 !important;    
             background: rgba(14, 14, 17, 0.95) !important;
             border: 1px solid rgba(108, 242, 194, 0.3) !important;
             border-left: 4px solid var(--accent) !important;
@@ -2939,10 +2816,8 @@
             opacity: 1 !important;
         }
 
-        /* 3. Выравнивание иконок левая часть кнопки */
-       
         .audio-icon-box {
-            width: 50px !important; /* Фиксированная ширина бокса иконки */
+            width: 50px !important; 
             height: 100% !important;
             border-right: 1px solid rgba(108, 242, 194, 0.1) !important;
             display: flex;
@@ -2954,44 +2829,35 @@
         .audio-icon-box i {
             font-size: 1.1rem !important;
         }
-
-        /* 4. Выравнивание текста (правая часть кнопки) */
-      
+  
         .audio-info-box {
             flex-grow: 1;
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Текст слева */
+            justify-content: flex-start; 
             padding-left: 15px !important;
             padding-right: 10px !important;
             height: 100%;
         }
 
-        /* 5. Убираем специфичные стили, которые делали SFX маленькой */
        
         .sfx-btn {
             height: 48px !important;
             opacity: 1 !important;
         }
         
-        /* 6. Ползунок громкости позиционируем относительно музыки */
-        
         .volume-control {
             position: absolute;
-            left: 100%; /* Справа от кнопок */
-            bottom: 0;  /* На уровне нижней кнопки */
+            left: 100%; 
+            bottom: 0;  
             margin-left: 15px;
            
-            /* Остальные стили слайдера подтянутся из основного CSS */
         }
     }
 
     /* MOBILE: ROUND BUTTONS + TWITCH ANIMATION SFX & MUSIC */
 
     @media (max-width: 1024px) {
-        
-        /* 1. Контейнер виджета */
-      
         .audio-widget {
             left: 20px !important;
             bottom: 30px !important;
@@ -2999,7 +2865,7 @@
             width: auto !important;
             height: auto !important;
             display: flex !important;
-            flex-direction: column-reverse !important; /* Музыка снизу, SFX сверху */
+            flex-direction: column-reverse !important;
             gap: 15px !important;
             mask-image: none !important;
             -webkit-mask-image: none !important;
@@ -3007,8 +2873,6 @@
 
         .audio-widget::after { display: none !important; }
 
-        /* 2. Общий стиль кнопок */
-       
         button.cyber-audio-btn {
             width: 60px !important;
             height: 60px !important;
@@ -3026,32 +2890,21 @@
             transition: all 0.3s ease;
         }
 
-        /* 3. Кнопка SFX */
         
         .sfx-btn { display: flex !important; }
-
-        /* Анимация SFX  */
         
         button.cyber-audio-btn.sfx-btn:not(.muted) {
             animation: glitch-twitch 4s infinite linear; /* Только дерганье */
             box-shadow: 0 0 15px var(--accent-glow), 0 5px 15px rgba(0,0,0,0.5) !important;
             background: rgba(var(--accent-rgb), 0.1) !important;
         }
-
-        /* 4. Кнопка МУЗЫКИ  */
         
         button.cyber-audio-btn.playing {
-          
-            /* ОБЪЕДИНЯЕМ: Пульсация + Дерганье  */
-          
             animation: pulse-ring 2s infinite, glitch-twitch 4s infinite linear;
             border-color: #fff !important;
             box-shadow: 0 0 20px var(--accent-glow) !important;
             background: rgba(var(--accent-rgb), 0.15) !important;
         }
-
-        /* 5. Иконки */
-       
         .audio-icon-box {
             width: 100% !important;
             height: 100% !important;
@@ -3066,20 +2919,14 @@
             opacity: 1 !important;
             color: var(--accent);
         }
-
-        /* 6. Скрываем лишнее */
      
         .audio-info-box, .volume-control, .burst-container {
             display: none !important;
         }
-
-        /* 7. Состояние "Выключено" для обеих кнопок */
-       
+      
         button.cyber-audio-btn.muted,
         button.cyber-audio-btn:not(.playing):not(.sfx-btn) { 
-          
-            /* :not(.playing) нужен чтобы кнопка музыки была тусклой когда на паузе */
-          
+           
             border-color: var(--muted) !important;
             background: rgba(0,0,0,0.8) !important;
             box-shadow: none !important;
@@ -3092,18 +2939,12 @@
             opacity: 0.5 !important;
         }
 
-        /*  КЕЙФРЕЙМЫ */
-
-        /* 1. Пульсация  */
-       
         @keyframes pulse-ring {
             0% { box-shadow: 0 0 0 0 rgba(108, 242, 194, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(108, 242, 194, 0); }
             100% { box-shadow: 0 0 0 0 rgba(108, 242, 194, 0); }
         }
-
-        /* 2. Глич */
-        
+      
         @keyframes glitch-twitch {
             0% { transform: translate(0, 0); }
             1% { transform: translate(-2px, 1px); }
@@ -3114,3 +2955,229 @@
             100% { transform: translate(0, 0); }
         }
     }
+
+     /* MATRIX BACKGROUND  */
+
+        .hero {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+
+            background: #050505;
+        }
+
+        #matrix-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 1;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(14, 14, 17, 0.2) 0%,  
+                rgba(14, 14, 17, 0.5) 50%, 
+                rgba(14, 14, 17, 0.9) 100% 
+            );
+            z-index: 1; 
+            pointer-events: none; 
+        }
+
+        .hero-bg-grid, 
+        .hero-scanlines, 
+        .hero-particles {
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .hero-content-wrapper {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 20px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+        }
+
+  /* STATIC CONSOLE BLOCK (FIXED) */
+
+    .hero-subtitle {
+        display: inline-block;
+        width: auto;
+        max-width: 800px;
+        margin: 0 auto 35px auto;
+        padding: 15px 30px;
+        background: rgba(10, 10, 12, 0.9); 
+        border: 1px solid rgba(108, 242, 194, 0.2);
+        border-left: 3px solid var(--accent); 
+        border-radius: 2px;
+        color: var(--accent);       
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        text-align: center;
+        letter-spacing: 0.5px; 
+        text-shadow: 0 0 5px rgba(108, 242, 194, 0.3);
+    }
+
+    .hero-subtitle:hover {
+        cursor: default;
+}
+
+
+    /*  DESKTOP LANGUAGE SWITCHER */
+
+    .lang-switcher-desktop {
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        z-index: 11000; 
+    }
+
+    .cyber-lang-btn {
+        background: rgba(14, 14, 17, 0.9);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-family: 'Consolas', monospace;
+        font-size: 1rem;
+        font-weight: bold;
+        padding: 8px 12px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    }
+
+    .cyber-lang-btn:hover {
+        background: var(--accent);
+        color: #000;
+        box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .cyber-lang-btn:active {
+        transform: scale(0.95);
+    }
+
+    .lang-glitch-effect {
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: 0.5s;
+    }
+
+    .cyber-lang-btn:hover .lang-glitch-effect {
+        left: 100%;
+    }
+
+    @media (max-width: 1024px) {
+        .lang-switcher-desktop {
+            top: 20px;
+            right: 20px;
+        }
+    }
+
+
+        /* SIMPLE FOOTER CONTACTS */
+
+    .contacts {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .contact-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--muted); 
+        transition: color 0.3s ease;
+        padding: 8px 12px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+
+    .contact-link:hover {
+        color: var(--accent); 
+        border-color: rgba(108, 242, 194, 0.3);
+        background: rgba(108, 242, 194, 0.05);
+    }
+
+    .icon-box svg {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+
+    .link-text {
+        font-family: 'Consolas', monospace;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+
+        /* COPY TO */
+
+    #emailBtn {
+        position: relative;
+        cursor: copy;      
+    }
+
+    .copy-tooltip {
+        position: absolute;
+        top: -45px;          
+        left: 50%;
+        transform: translateX(-50%) scale(0.8); 
+        
+        background: var(--accent);
+        color: #000;              
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-family: 'Consolas', monospace;
+        font-size: 0.8rem;
+        font-weight: bold;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 0 15px var(--accent-glow);
+        z-index: 100;
+    }
+
+    .copy-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -6px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: var(--accent) transparent transparent transparent;
+    }
+
+    #emailBtn.copied .copy-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) scale(1); 
+        top: -50px; 
+    }
+
+    
